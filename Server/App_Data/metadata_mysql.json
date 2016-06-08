@@ -1,0 +1,1306 @@
+{
+  "database": {
+    "dialect": "MYSQL",
+    "version": 5,
+    "description": "5.7.10-log"
+  },
+  "namespace": "Server.Models.Utils.DAL",
+  "max": 256,
+  "multiplicity": {
+    "multi": "multi",
+    "single": "single"
+  },
+  "entityTypes": {
+    "Actor": {
+      "tableName": "actor",
+      "entitySetName": "Actors",
+      "key": [
+        "ActorId"
+      ],
+      "properties": {
+        "ActorId": {
+          "fieldName": "actor_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FirstName": {
+          "fieldName": "first_name",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastName": {
+          "fieldName": "last_name",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "ActorId"
+      ],
+      "navigationProperties": {
+        "FilmActors": {
+          "entityTypeName": "FilmActor",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "ActorId"
+          ],
+          "keyRemote": [
+            "ActorId"
+          ]
+        }
+      }
+    },
+    "Address": {
+      "tableName": "address",
+      "entitySetName": "Addresses",
+      "key": [
+        "AddressId"
+      ],
+      "properties": {
+        "AddressId": {
+          "fieldName": "address_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Address1": {
+          "fieldName": "address",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 50
+        },
+        "Address2": {
+          "fieldName": "address2",
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50
+        },
+        "District": {
+          "fieldName": "district",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 20
+        },
+        "CityId": {
+          "fieldName": "city_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "PostalCode": {
+          "fieldName": "postal_code",
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "maxLength": 10
+        },
+        "Phone": {
+          "fieldName": "phone",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 20
+        },
+        "Location": {
+          "fieldName": "location",
+          "type": "geometry",
+          "nullable": false,
+          "default": "ST_GeomFromText('POINT(0 0)')",
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "AddressId"
+      ],
+      "navigationProperties": {
+        "City": {
+          "entityTypeName": "City",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CityId"
+          ],
+          "keyRemote": [
+            "CityId"
+          ]
+        },
+        "Customers": {
+          "entityTypeName": "Customer",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Staffs": {
+          "entityTypeName": "Staff",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Stores": {
+          "entityTypeName": "Store",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        }
+      }
+    },
+    "Category": {
+      "tableName": "category",
+      "entitySetName": "Categories",
+      "key": [
+        "CategoryId"
+      ],
+      "properties": {
+        "CategoryId": {
+          "fieldName": "category_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "fieldName": "name",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 25
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CategoryId"
+      ],
+      "navigationProperties": {
+        "FilmCategories": {
+          "entityTypeName": "FilmCategory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CategoryId"
+          ],
+          "keyRemote": [
+            "CategoryId"
+          ]
+        }
+      }
+    },
+    "City": {
+      "tableName": "city",
+      "entitySetName": "Cities",
+      "key": [
+        "CityId"
+      ],
+      "properties": {
+        "CityId": {
+          "fieldName": "city_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "fieldName": "city",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 50
+        },
+        "CountryId": {
+          "fieldName": "country_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CityId"
+      ],
+      "navigationProperties": {
+        "Addresses": {
+          "entityTypeName": "Address",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CityId"
+          ],
+          "keyRemote": [
+            "CityId"
+          ]
+        },
+        "Country": {
+          "entityTypeName": "Country",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CountryId"
+          ],
+          "keyRemote": [
+            "CountryId"
+          ]
+        }
+      }
+    },
+    "Country": {
+      "tableName": "country",
+      "entitySetName": "Countries",
+      "key": [
+        "CountryId"
+      ],
+      "properties": {
+        "CountryId": {
+          "fieldName": "country_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "fieldName": "country",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 50
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CountryId"
+      ],
+      "navigationProperties": {
+        "Cities": {
+          "entityTypeName": "City",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CountryId"
+          ],
+          "keyRemote": [
+            "CountryId"
+          ]
+        }
+      }
+    },
+    "Customer": {
+      "tableName": "customer",
+      "entitySetName": "Customers",
+      "key": [
+        "CustomerId"
+      ],
+      "properties": {
+        "CustomerId": {
+          "fieldName": "customer_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "StoreId": {
+          "fieldName": "store_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FirstName": {
+          "fieldName": "first_name",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastName": {
+          "fieldName": "last_name",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "Email": {
+          "fieldName": "email",
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50
+        },
+        "AddressId": {
+          "fieldName": "address_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Active": {
+          "fieldName": "active",
+          "type": "bit",
+          "nullable": false,
+          "default": false,
+          "maxLength": null
+        },
+        "CreateDate": {
+          "fieldName": "create_date",
+          "type": "datetime",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CustomerId"
+      ],
+      "navigationProperties": {
+        "Store": {
+          "entityTypeName": "Store",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Address": {
+          "entityTypeName": "Address",
+          "multiplicity": "single",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Payments": {
+          "entityTypeName": "Payment",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        },
+        "Rentals": {
+          "entityTypeName": "Rental",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        }
+      }
+    },
+    "Film": {
+      "tableName": "film",
+      "entitySetName": "Films",
+      "key": [
+        "FilmId"
+      ],
+      "properties": {
+        "FilmId": {
+          "fieldName": "film_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Title": {
+          "fieldName": "title",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 255
+        },
+        "Description": {
+          "fieldName": "description",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": 65535
+        },
+        "ReleaseYear": {
+          "fieldName": "release_year",
+          "type": "year",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "LanguageId": {
+          "fieldName": "language_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "OriginalLanguageId": {
+          "fieldName": "original_language_id",
+          "type": "tinyint",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "RentalDuration": {
+          "fieldName": "rental_duration",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "RentalRate": {
+          "fieldName": "rental_rate",
+          "type": "decimal",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Length": {
+          "fieldName": "length",
+          "type": "smallint",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "ReplacementCost": {
+          "fieldName": "replacement_cost",
+          "type": "decimal",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Rating": {
+          "fieldName": "rating",
+          "type": "enum",
+          "nullable": true,
+          "default": null,
+          "maxLength": 5
+        },
+        "SpecialFeatures": {
+          "fieldName": "special_features",
+          "type": "set",
+          "nullable": true,
+          "default": null,
+          "maxLength": 54
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "FilmId"
+      ],
+      "navigationProperties": {
+        "Language": {
+          "entityTypeName": "Language",
+          "multiplicity": "single",
+          "keyLocal": [
+            "LanguageId"
+          ],
+          "keyRemote": [
+            "LanguageId"
+          ]
+        },
+        "Language1": {
+          "entityTypeName": "Language",
+          "multiplicity": "single",
+          "keyLocal": [
+            "OriginalLanguageId"
+          ],
+          "keyRemote": [
+            "LanguageId"
+          ]
+        },
+        "FilmActors": {
+          "entityTypeName": "FilmActor",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "FilmCategories": {
+          "entityTypeName": "FilmCategory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "Inventories": {
+          "entityTypeName": "Inventory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        }
+      }
+    },
+    "FilmActor": {
+      "tableName": "film_actor",
+      "entitySetName": "FilmActors",
+      "key": [
+        "ActorId",
+        "FilmId"
+      ],
+      "properties": {
+        "ActorId": {
+          "fieldName": "actor_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FilmId": {
+          "fieldName": "film_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": null,
+      "navigationProperties": {
+        "Actor": {
+          "entityTypeName": "Actor",
+          "multiplicity": "single",
+          "keyLocal": [
+            "ActorId"
+          ],
+          "keyRemote": [
+            "ActorId"
+          ]
+        },
+        "Film": {
+          "entityTypeName": "Film",
+          "multiplicity": "single",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        }
+      }
+    },
+    "FilmCategory": {
+      "tableName": "film_category",
+      "entitySetName": "FilmCategories",
+      "key": [
+        "FilmId",
+        "CategoryId"
+      ],
+      "properties": {
+        "FilmId": {
+          "fieldName": "film_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "CategoryId": {
+          "fieldName": "category_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": null,
+      "navigationProperties": {
+        "Film": {
+          "entityTypeName": "Film",
+          "multiplicity": "single",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "Category": {
+          "entityTypeName": "Category",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CategoryId"
+          ],
+          "keyRemote": [
+            "CategoryId"
+          ]
+        }
+      }
+    },
+    "FilmText": {
+      "tableName": "film_text",
+      "entitySetName": "FilmTexts",
+      "key": [
+        "FilmId"
+      ],
+      "properties": {
+        "FilmId": {
+          "fieldName": "film_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Title": {
+          "fieldName": "title",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 255
+        },
+        "Description": {
+          "fieldName": "description",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": 65535
+        }
+      },
+      "calculatedProperties": null,
+      "navigationProperties": {}
+    },
+    "Inventory": {
+      "tableName": "inventory",
+      "entitySetName": "Inventories",
+      "key": [
+        "InventoryId"
+      ],
+      "properties": {
+        "InventoryId": {
+          "fieldName": "inventory_id",
+          "type": "mediumint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FilmId": {
+          "fieldName": "film_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "StoreId": {
+          "fieldName": "store_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "InventoryId"
+      ],
+      "navigationProperties": {
+        "Film": {
+          "entityTypeName": "Film",
+          "multiplicity": "single",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "Store": {
+          "entityTypeName": "Store",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Rentals": {
+          "entityTypeName": "Rental",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "InventoryId"
+          ],
+          "keyRemote": [
+            "InventoryId"
+          ]
+        }
+      }
+    },
+    "Language": {
+      "tableName": "language",
+      "entitySetName": "Languages",
+      "key": [
+        "LanguageId"
+      ],
+      "properties": {
+        "LanguageId": {
+          "fieldName": "language_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "fieldName": "name",
+          "type": "char",
+          "nullable": false,
+          "default": "",
+          "maxLength": 20
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "LanguageId"
+      ],
+      "navigationProperties": {
+        "Films": {
+          "entityTypeName": "Film",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "LanguageId"
+          ],
+          "keyRemote": [
+            "LanguageId"
+          ]
+        },
+        "Films1": {
+          "entityTypeName": "Film",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "LanguageId"
+          ],
+          "keyRemote": [
+            "OriginalLanguageId"
+          ]
+        }
+      }
+    },
+    "Payment": {
+      "tableName": "payment",
+      "entitySetName": "Payments",
+      "key": [
+        "PaymentId"
+      ],
+      "properties": {
+        "PaymentId": {
+          "fieldName": "payment_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "CustomerId": {
+          "fieldName": "customer_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "StaffId": {
+          "fieldName": "staff_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "RentalId": {
+          "fieldName": "rental_id",
+          "type": "int",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "Amount": {
+          "fieldName": "amount",
+          "type": "decimal",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "PaymentDate": {
+          "fieldName": "payment_date",
+          "type": "datetime",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "PaymentId"
+      ],
+      "navigationProperties": {
+        "Customer": {
+          "entityTypeName": "Customer",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        },
+        "Staff": {
+          "entityTypeName": "Staff",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Rental": {
+          "entityTypeName": "Rental",
+          "multiplicity": "single",
+          "keyLocal": [
+            "RentalId"
+          ],
+          "keyRemote": [
+            "RentalId"
+          ]
+        }
+      }
+    },
+    "Rental": {
+      "tableName": "rental",
+      "entitySetName": "Rentals",
+      "key": [
+        "RentalId"
+      ],
+      "properties": {
+        "RentalId": {
+          "fieldName": "rental_id",
+          "type": "int",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "RentalDate": {
+          "fieldName": "rental_date",
+          "type": "datetime",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        },
+        "InventoryId": {
+          "fieldName": "inventory_id",
+          "type": "mediumint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "CustomerId": {
+          "fieldName": "customer_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "ReturnDate": {
+          "fieldName": "return_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "StaffId": {
+          "fieldName": "staff_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "RentalId"
+      ],
+      "navigationProperties": {
+        "Payments": {
+          "entityTypeName": "Payment",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "RentalId"
+          ],
+          "keyRemote": [
+            "RentalId"
+          ]
+        },
+        "Inventory": {
+          "entityTypeName": "Inventory",
+          "multiplicity": "single",
+          "keyLocal": [
+            "InventoryId"
+          ],
+          "keyRemote": [
+            "InventoryId"
+          ]
+        },
+        "Customer": {
+          "entityTypeName": "Customer",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        },
+        "Staff": {
+          "entityTypeName": "Staff",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        }
+      }
+    },
+    "Staff": {
+      "tableName": "staff",
+      "entitySetName": "Staffs",
+      "key": [
+        "StaffId"
+      ],
+      "properties": {
+        "StaffId": {
+          "fieldName": "staff_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FirstName": {
+          "fieldName": "first_name",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastName": {
+          "fieldName": "last_name",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "AddressId": {
+          "fieldName": "address_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Picture": {
+          "fieldName": "picture",
+          "type": "blob",
+          "nullable": true,
+          "default": null,
+          "maxLength": 65535
+        },
+        "Email": {
+          "fieldName": "email",
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50
+        },
+        "StoreId": {
+          "fieldName": "store_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Active": {
+          "fieldName": "active",
+          "type": "bit",
+          "nullable": false,
+          "default": false,
+          "maxLength": null
+        },
+        "Username": {
+          "fieldName": "username",
+          "type": "varchar",
+          "nullable": false,
+          "default": "",
+          "maxLength": 16
+        },
+        "Password": {
+          "fieldName": "password",
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "maxLength": 40
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "StaffId"
+      ],
+      "navigationProperties": {
+        "Payments": {
+          "entityTypeName": "Payment",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Rentals": {
+          "entityTypeName": "Rental",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Address": {
+          "entityTypeName": "Address",
+          "multiplicity": "single",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Store": {
+          "entityTypeName": "Store",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Stores": {
+          "entityTypeName": "Store",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "ManagerStaffId"
+          ]
+        }
+      }
+    },
+    "Store": {
+      "tableName": "store",
+      "entitySetName": "Stores",
+      "key": [
+        "StoreId"
+      ],
+      "properties": {
+        "StoreId": {
+          "fieldName": "store_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "ManagerStaffId": {
+          "fieldName": "manager_staff_id",
+          "type": "tinyint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "AddressId": {
+          "fieldName": "address_id",
+          "type": "smallint",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "fieldName": "last_update",
+          "type": "timestamp",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "StoreId"
+      ],
+      "navigationProperties": {
+        "Customers": {
+          "entityTypeName": "Customer",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Inventories": {
+          "entityTypeName": "Inventory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Staffs": {
+          "entityTypeName": "Staff",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Staff": {
+          "entityTypeName": "Staff",
+          "multiplicity": "single",
+          "keyLocal": [
+            "ManagerStaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Address": {
+          "entityTypeName": "Address",
+          "multiplicity": "single",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        }
+      }
+    }
+  },
+  "functions": null,
+  "actions": null
+}

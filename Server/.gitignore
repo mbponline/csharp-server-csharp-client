@@ -1,0 +1,7 @@
+bin/
+bower_components/
+node_modules/
+obj/
+*.js
+*.map
+!main.js
