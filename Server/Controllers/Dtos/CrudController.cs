@@ -5,7 +5,7 @@ using System.Web.Http;
 
 namespace Server.Controllers.Dtos
 {
-    [RoutePrefix("api/datasource/crud")]
+    [RoutePrefix("api/datasource")]
     public class CrudController : ApiController
     {
         public CrudController()
@@ -15,7 +15,7 @@ namespace Server.Controllers.Dtos
 
         private readonly DataServiceDto dataService;
 
-        // GET: api/datasource/crud/metadata
+        // GET: api/datasource/metadata
         [Route("metadata")]
         [HttpGet]
         public Metadata GetMetadata()
@@ -24,7 +24,7 @@ namespace Server.Controllers.Dtos
         }
 
         // GET: api/datasource/crud/{entitySetName}?skip=20&top=10
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpGet]
         public ResultSerialResponse Get(string entitySetName, [FromUri] QueryParams queryParams)
         {
@@ -32,7 +32,7 @@ namespace Server.Controllers.Dtos
         }
 
         // GET: api/datasource/crud/single/{entitySetName}?keys=key1:{key1}
-        [Route("single/{entitySetName}")]
+        [Route("crud/single/{entitySetName}")]
         [HttpGet]
         public ResultSingleSerialData GetSingle(string entitySetName, [FromUri] QueryParams queryParams)
         {
@@ -40,7 +40,7 @@ namespace Server.Controllers.Dtos
         }
 
         // GET: api/datasource/crud/many/{entitySetName}?keys=key1:1,2,3,4;key2:4,5,6,7
-        [Route("many/{entitySetName}")]
+        [Route("crud/many/{entitySetName}")]
         [HttpGet]
         public ResultSerialData GetMany(string entitySetName, [FromUri] QueryParams queryParams)
         {
@@ -48,7 +48,7 @@ namespace Server.Controllers.Dtos
         }
 
         // PUT: api/datasource/crud/{entitySetName}?keys=key1:{key1}
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpPut]
         public ResultSingleSerialData Put(string entitySetName, [FromUri] QueryParams queryParams, [FromBody] JObject jdto)
         {
@@ -57,7 +57,7 @@ namespace Server.Controllers.Dtos
         }
 
         // PATCH: api/datasource/crud/{entitySetName}?keys=key1:{key1}
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpPatch]
         public ResultSingleSerialData Patch(string entitySetName, [FromUri] QueryParams queryParams, [FromBody] JObject jdto)
         {
@@ -66,7 +66,7 @@ namespace Server.Controllers.Dtos
         }
 
         // POST: api/datasource/crud/{entitySetName}
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpPost]
         public ResultSingleSerialData Post(string entitySetName, [FromBody] JObject jdto)
         {
@@ -75,7 +75,7 @@ namespace Server.Controllers.Dtos
         }
 
         // DELETE: api/datasource/crud/{entitySetName}?keys=key1:{key1}
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpDelete]
         public ResultSingleSerialData Delete(string entitySetName, [FromUri] QueryParams queryParams)
         {
@@ -83,7 +83,7 @@ namespace Server.Controllers.Dtos
         }
 
         // PUT: api/datasource/crud/batch/{entitySetName}
-        [Route("batch/{entitySetName}")]
+        [Route("crud/batch/{entitySetName}")]
         [HttpPut]
         public List<ResultSingleSerialData> PutBatch(string entitySetName, [FromBody] JObject[] jdtos)
         {
@@ -96,7 +96,7 @@ namespace Server.Controllers.Dtos
         }
 
         // PATCH: api/datasource/crud/batch/{entitySetName}
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpPatch]
         public List<ResultSingleSerialData> PatchBatch(string entitySetName, [FromBody] JObject[] jdtos)
         {
@@ -109,7 +109,7 @@ namespace Server.Controllers.Dtos
         }
 
         // POST: api/datasource/crud/batch/{entitySetName}
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpPost]
         public List<ResultSingleSerialData> PostBatch(string entitySetName, [FromBody] JObject[] jdtos)
         {
@@ -122,7 +122,7 @@ namespace Server.Controllers.Dtos
         }
 
         //// DELETE: api/datasource/crud/batch/{entitySetName}
-        //[Route("{entitySetName}")]
+        //[Route("crud/{entitySetName}")]
         //[HttpDelete]
         //public ResultSerialData DeleteBatch1(string entitySetName, [FromBody] JObject[] jdtos)
         //{
@@ -135,7 +135,7 @@ namespace Server.Controllers.Dtos
         //}
 
         // DELETE: api/datasource/crud/batch/{entitySetName}?keys=key1:1,2,3,4;key2:4,5,6,7
-        [Route("{entitySetName}")]
+        [Route("crud/{entitySetName}")]
         [HttpDelete]
         public ResultSerialData DeleteBatch(string entitySetName, [FromUri] QueryParams queryParams)
         {
