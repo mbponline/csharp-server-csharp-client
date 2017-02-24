@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace Client.Models.Utils.DAL.Common
 {
@@ -18,28 +17,27 @@ namespace Client.Models.Utils.DAL.Common
         private DataContext dataContext;
         private Metadata metadata;
 
-        public async Task<QueryResult<T>> GetEntitiesAsync<T>(string operationName, Dictionary<string, object> paramList, QueryObject queryObject)
-            where T : class, IDerivedEntity
+        public async Task<QueryResult<Entity>> GetEntitiesAsync(string operationName, Dictionary<string, object> paramList, QueryObject queryObject)
         {
-            var dataSet = new List<T>();
+            var dataSet = new List<Entity>();
             var totalCount = 0;
             var paramsQueryString = this.CreateParamsQueryString(paramList);
             //BusyIndicator.instance.start();
             var resultSerialResponse = await this.dataAdapter.QueryServiceOperationAsync<ResultSerialResponse>(operationName, paramsQueryString, queryObject, "GET", true);
-            var tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data).Select(it => (T)it);
+            var tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data);
             dataSet.AddRange(tempDataSet);
             var moreData = resultSerialResponse != null && !string.IsNullOrEmpty(resultSerialResponse.NextLink);
             while (moreData)
             {
                 resultSerialResponse = await this.dataAdapter.queryAllNextAsync(resultSerialResponse.NextLink);
-                tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data).Select(it => (T)it);
+                tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data);
                 dataSet.AddRange(tempDataSet);
                 totalCount = resultSerialResponse.Data.TotalCount;
                 moreData = resultSerialResponse != null && !string.IsNullOrEmpty(resultSerialResponse.NextLink);
             }
             //BusyIndicator.instance.stop();
 
-            var queryResult = new QueryResult<T>()
+            var queryResult = new QueryResult<Entity>()
             {
                 Rows = dataSet,
                 TotalRows = totalCount
@@ -48,15 +46,14 @@ namespace Client.Models.Utils.DAL.Common
 
         }
 
-        public async Task<T> GetSingleEntityAsync<T>(string operationName, Dictionary<string, object> paramList)
-            where T : class, IDerivedEntity
+        public async Task<Entity> GetSingleEntityAsync(string operationName, Dictionary<string, object> paramList)
         {
             var paramsQueryString = this.CreateParamsQueryString(paramList);
             //BusyIndicator.instance.start();
             var resultSerialResponse = await this.dataAdapter.QueryServiceOperationAsync<ResultSingleSerialData>(operationName, paramsQueryString, null, "GET", false);
             //BusyIndicator.instance.stop();
-            var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSerialResponse);
-            return (T)derivedEntity;
+            var entity = this.dataContext.AttachSingleEntitiy(resultSerialResponse);
+            return entity;
         }
 
 
@@ -70,26 +67,24 @@ namespace Client.Models.Utils.DAL.Common
         }
 
 
-        public async Task<IEnumerable<T>> GetEntitiesPostOperationAsync<T>(string operationName, Dictionary<string, object> paramList)
-            where T : class, IDerivedEntity
+        public async Task<IEnumerable<Entity>> GetEntitiesPostOperationAsync(string operationName, Dictionary<string, object> paramList)
         {
             var paramsQueryString = this.CreateParamsQueryString(paramList);
             //BusyIndicator.instance.start();
             var resultSerialData = await this.dataAdapter.QueryServiceOperationAsync<ResultSerialData>(operationName, paramsQueryString, null, "POST", true);
             //BusyIndicator.instance.stop();
-            var derivedEntityList = this.dataContext.AttachEntities(resultSerialData).Select(it => (T)it);
-            return derivedEntityList;
+            var entities = this.dataContext.AttachEntities(resultSerialData);
+            return entities;
         }
 
-        public async Task<T> GetEntityPostOperationAsync<T>(string operationName, Dictionary<string, object> paramList)
-            where T : class, IDerivedEntity
+        public async Task<Entity> GetEntityPostOperationAsync(string operationName, Dictionary<string, object> paramList)
         {
             var paramsQueryString = this.CreateParamsQueryString(paramList);
             //BusyIndicator.instance.start();
             var resultSingleSerialData = await this.dataAdapter.QueryServiceOperationAsync<ResultSingleSerialData>(operationName, paramsQueryString, null, "POST", true);
             //BusyIndicator.instance.stop();
-            var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
-            return (T)derivedEntity;
+            var entity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
+            return entity;
         }
 
 

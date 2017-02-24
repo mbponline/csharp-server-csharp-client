@@ -4,94 +4,93 @@ using System.Linq;
 
 namespace Client.Models.Utils.DAL.Common
 {
-    public class DataViewLocal<T>
-        where T : class, IDerivedEntity
+    public class DataViewLocal
     {
-        public DataViewLocal(DataContext dataContext)
+        public DataViewLocal(string entityTypeName, DataContext dataContext)
         {
-            this.entityTypeName = typeof(T).Name;
+            this.entityTypeName = entityTypeName;
             this.dataContext = dataContext;
         }
 
         private readonly string entityTypeName;
         private readonly DataContext dataContext;
 
-        public IEnumerable<T> GetItems(Func<T, bool> predicate)
+        public IEnumerable<Entity> GetItems(Func<Entity, bool> predicate)
         {
-            var derivedEntityList = Enumerable.Empty<T>();
+            var entities = Enumerable.Empty<Entity>();
             if (this.dataContext.entitySets.ContainsKey(this.entityTypeName))
             {
-                var entitySetItems = this.dataContext.entitySets[this.entityTypeName].Items.Select((it) => it as T);
-                derivedEntityList = entitySetItems.Where(predicate).ToArray();
+                var entitySetItems = this.dataContext.entitySets[this.entityTypeName].Items;
+                entities = entitySetItems.Where(predicate).ToArray();
             }
-            return derivedEntityList;
+            return entities;
         }
 
-        public IEnumerable<T> GetMultipleItems(IEnumerable<Dto> partialDtos)
+        public IEnumerable<Entity> GetMultipleItems(IEnumerable<Dto> partialDtos)
         {
-            var derivedEntityList = new List<T>();
-            var derivedEntity = default(T);
+            var entities = new List<Entity>();
+            var entity = default(Entity);
             if (this.dataContext.entitySets.ContainsKey(this.entityTypeName))
             {
-                var entitySet = (IEntitySet<T>)this.dataContext.entitySets[this.entityTypeName];
+                var entitySet = this.dataContext.entitySets[this.entityTypeName];
                 foreach (var partialDto in partialDtos)
                 {
-                    derivedEntity = entitySet.FindByKey(partialDto);
-                    if (derivedEntity != null)
+                    entity = entitySet.FindByKey(partialDto);
+                    if (entity != null)
                     {
-                        derivedEntityList.Add(derivedEntity);
+                        entities.Add(entity);
                     }
                 }
             }
-            return derivedEntityList;
+            return entities;
         }
 
-        public T GetSingleItem(Func<T, bool> predicate)
+        public Entity GetSingleItem(Func<Entity, bool> predicate)
         {
-            var derivedEntity = default(T);
+            var entity = default(Entity);
             if (this.dataContext.entitySets.ContainsKey(this.entityTypeName))
             {
-                var entitySetItems = this.dataContext.entitySets[this.entityTypeName].Items.Select((it) => it as T);
-                derivedEntity = entitySetItems.FirstOrDefault(predicate);
+                var entitySetItems = this.dataContext.entitySets[this.entityTypeName].Items;
+                entity = entitySetItems.FirstOrDefault(predicate);
             }
-            return derivedEntity;
+            return entity;
         }
 
-        public T GetSingleItem(Dto partialDto)
+        public Entity GetSingleItem(Dto partialDto)
         {
-            var derivedEntity = default(T);
+            var entity = default(Entity);
             if (this.dataContext.entitySets.ContainsKey(this.entityTypeName))
             {
-                var entitySet = (IEntitySet<T>)this.dataContext.entitySets[this.entityTypeName];
-                derivedEntity = entitySet.FindByKey(partialDto /*partialEntity*/);
+                var entitySet =this.dataContext.entitySets[this.entityTypeName];
+                entity = entitySet.FindByKey(partialDto /*partialEntity*/);
             }
-            return derivedEntity;
+            return entity;
         }
 
-        public T CreateItemDetached()
+        public Entity CreateItemDetached()
         {
-            var derivedEntity = this.dataContext.CreateItemDetached<T>(this.entityTypeName);
-            return derivedEntity;
+            var entity = this.dataContext.CreateItemDetached(this.entityTypeName);
+            return entity;
         }
 
-        public void DetachItem(T derivedEntity)
+        public void DetachItem(Entity entity)
         {
-            var entitySet = (IEntitySet<T>)this.dataContext.entitySets[this.entityTypeName];
-            entitySet.DeleteEntity(derivedEntity);
+            var entitySet = this.dataContext.entitySets[this.entityTypeName];
+            entitySet.DeleteEntity(entity);
         }
 
-        public void DetachItems(IEnumerable<T> derivedEntityList)
+        public void DetachItems(IEnumerable<Entity> entities)
         {
-            var entitySet = (IEntitySet<T>)this.dataContext.entitySets[this.entityTypeName];
-            foreach (var derivedEntity in derivedEntityList)
+            var entitySet = this.dataContext.entitySets[this.entityTypeName];
+            foreach (var entity in entities)
             {
-                entitySet.DeleteEntity(derivedEntity);
+                entitySet.DeleteEntity(entity);
             }
         }
 
         public void DetachAll()
         {
-            var entitySet = (IEntitySet<T>)this.dataContext.entitySets[this.entityTypeName];
+            var entitySet = this.dataContext.entitySets[this.entityTypeName];
             entitySet.DeleteAll();
         }
     }

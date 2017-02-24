@@ -82,7 +82,8 @@ namespace MetadataGenerator.Models
             br.WriteLine("using Newtonsoft.Json;")
                 .WriteLine("using Client.Models.Utils.DAL.Common;")
                 .WriteLine("using System;")
-                .WriteLine("using System.Collections.Generic;")
+                .WriteLine("using System.Linq;")
+				.WriteLine("using System.Collections.Generic;")
                 .WriteLine("using System.Threading.Tasks;")
                 .WriteLine();
 
@@ -125,24 +126,24 @@ namespace MetadataGenerator.Models
             br.EndBlock("}");
 
             // LocalViews
-            br.WriteLine("public class LocalViews : PropertyList");
+            br.WriteLine("public class LocalViews : LocalViewsBase");
             br.BeginBlock("{")
                 .WriteLine("public LocalViews(DataContext dataContext) : base(dataContext) { }")
                 .WriteLine();
             foreach (var entityType in entityTypes)
             {
-                br.WriteLine(string.Format("public DataViewLocal<{0}> {1} {{ get {{ return this.GetPropertyValue<DataViewLocal<{0}>>(); }} }}", entityType.Key, entityType.Value.EntitySetName));
+                br.WriteLine(string.Format("public DataViewLocal {0} {{ get {{ return this.GetPropertyValue(\"{1}\"); }} }}", entityType.Value.EntitySetName, entityType.Key));
             }
             br.EndBlock("}");
 
             // RemoteViews
-            br.WriteLine("public class RemoteViews : PropertyList");
+            br.WriteLine("public class RemoteViews : RemoteViewsBase");
             br.BeginBlock("{")
                 .WriteLine("public RemoteViews(DataAdapter dataAdapter, DataContext dataContext, Metadata metadata) : base(dataAdapter, dataContext, metadata) { }")
                 .WriteLine();
             foreach (var entityType in entityTypes)
             {
-                br.WriteLine(string.Format("public DataViewRemote<{0}> {1} {{ get {{ return this.GetPropertyValue<DataViewRemote<{0}>>(); }} }}", entityType.Key, entityType.Value.EntitySetName));
+                br.WriteLine(string.Format("public DataViewRemote {0} {{ get {{ return this.GetPropertyValue(\"{1}\"); }} }}", entityType.Value.EntitySetName, entityType.Key));
             }
             br.EndBlock("}");
 
@@ -161,7 +162,7 @@ namespace MetadataGenerator.Models
                 var etnp = et.Value.NavigationProperties ?? new Dictionary<string, NavigationProperty>();
 
                 // constructor generator
-                br.WriteLine(string.Format("public sealed class {0} : IDerivedEntity", et.Key));
+                br.WriteLine(string.Format("public sealed class {0}", et.Key));
                 br.BeginBlock("{");
                 br.WriteLine(string.Format("public {0}(Entity entity)", et.Key));
                 br.BeginBlock("{");

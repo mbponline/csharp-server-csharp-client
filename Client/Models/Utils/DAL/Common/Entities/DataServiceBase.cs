@@ -7,8 +7,8 @@ using Newtonsoft.Json;
 namespace Client.Models.Utils.DAL.Common
 {
     public abstract class DataServiceBase<TLocal, TRemote, TFunction, TAction>
-        where TLocal : PropertyList
-        where TRemote : PropertyList
+        where TLocal : LocalViewsBase
+        where TRemote : RemoteViewsBase
         where TFunction : OperationsProvider
         where TAction : OperationsProvider
     {

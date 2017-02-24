@@ -30,7 +30,12 @@ namespace Client
                 Top = 20,
             };
 
-            var films = await dataAgent.DataService.From.Remote.Films.GetItemsAsync(queryObject);
+            var filmsEntity = await dataAgent.DataService.From.Remote.Films.GetItemsAsync(queryObject);
+            var films = new QueryResult<Film>
+            {
+                Rows = filmsEntity.Rows.Select(it => new Film(it)),
+                TotalRows = filmsEntity.TotalRows
+            };
 
             foreach (var film in films.Rows)
             {
