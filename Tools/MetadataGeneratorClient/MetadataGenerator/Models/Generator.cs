@@ -161,12 +161,16 @@ namespace MetadataGenerator.Models
                 var etnp = et.Value.NavigationProperties ?? new Dictionary<string, NavigationProperty>();
 
                 // constructor generator
-                br.WriteLine(string.Format("public sealed class {0} : Entity", et.Key));
+                br.WriteLine(string.Format("public sealed class {0} : IDerivedEntity", et.Key));
                 br.BeginBlock("{");
-                br.WriteLine(string.Format("public {0}() : base()", et.Key));
+                br.WriteLine(string.Format("public {0}(Entity entity)", et.Key));
                 br.BeginBlock("{");
-                GeneratorUtils.WriteDefaultValues(br, etp);
+				br.WriteLine(string.Format("if (entity.entityTypeName != \"{0}\") {{ throw new ArgumentException(\"Incorrect entity type\"); }}", et.Key));
+				br.WriteLine("this.entity = entity;");
                 br.EndBlock("}");
+
+				br.WriteLine("public Entity entity { get; private set; }")
+				  .WriteLine();
 
                 // properties
                 GeneratorUtils.WriteProperties(br, etp, dbTypeConvert);

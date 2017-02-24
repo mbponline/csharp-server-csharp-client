@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Client.Models.Utils.DAL.Common
+﻿namespace Client.Models.Utils.DAL.Common
 {
 
     public class QueryParams

@@ -3,42 +3,49 @@ using System.Linq;
 
 namespace Client.Models.Utils.DAL.Common
 {
-    public abstract class Entity : Dto, IEntity
-    {
-        protected Entity()
-        {
-        }
+	public sealed class Entity
+	{
+		public Entity(string entityTypeName, Dto dto)
+		{
+			this.entityTypeName = entityTypeName;
+			this.dto = dto;
+		}
 
-        private Dictionary<string, IEntitySet<IEntity>> dataSets;
-        private Metadata metadata;
+		private Dictionary<string, IEntitySet<IDerivedEntity>> entitySets;
 
-        public void _attach(Dictionary<string, IEntitySet<IEntity>> dataSets, Metadata metadata)
-        {
-            this.dataSets = dataSets;
-            this.metadata = metadata;
-        }
+		private Metadata metadata;
 
-        public void _detach()
-        {
-            this.dataSets = null;
-            this.metadata = null;
-        }
+		public string entityTypeName { get; private set; }
 
-        protected TResult NavigateSingle<TResult>(string entityTypeName, string navigationPropertyName)
-            where TResult : class, IEntity
-        {
-            var navElement = this.metadata.EntityTypes[entityTypeName].NavigationProperties[navigationPropertyName];
-            var remoteEntitySet = this.dataSets.ContainsKey(navElement.EntityTypeName) ? this.dataSets[navElement.EntityTypeName] : null;
-            return remoteEntitySet != null ? remoteEntitySet.NavigateSingle(this, navElement.KeyLocal, navElement.KeyRemote) as TResult : null;
-        }
+		public Dto dto { get; set; }
 
-        protected IEnumerable<TResult> NavigateMulti<TResult>(string entityTypeName, string navigationPropertyName)
-            where TResult : class, IEntity
-        {
-            var navElement = this.metadata.EntityTypes[entityTypeName].NavigationProperties[navigationPropertyName];
-            var remoteEntitySet = this.dataSets.ContainsKey(navElement.EntityTypeName) ? this.dataSets[navElement.EntityTypeName] : null;
-            return remoteEntitySet != null ? remoteEntitySet.NavigateMulti(this, navElement.KeyLocal, navElement.KeyRemote).Select((it) => it as TResult) : new List<TResult>();
-        }
-    }
+		public void Attach(Dictionary<string, IEntitySet<IDerivedEntity>> entitySets, Metadata metadata)
+		{
+			this.entitySets = entitySets;
+			this.metadata = metadata;
+		}
+
+		public void Detach()
+		{
+			this.entitySets = null;
+			this.metadata = null;
+		}
+
+		public TResult NavigateSingle<TResult>(string entityTypeName, string navigationPropertyName)
+			where TResult : class, IDerivedEntity
+		{
+			var navElement = this.metadata.EntityTypes[entityTypeName].NavigationProperties[navigationPropertyName];
+			var remoteEntitySet = this.entitySets.ContainsKey(navElement.EntityTypeName) ? (EntitySet<TResult>)this.entitySets[navElement.EntityTypeName] : null;
+			return remoteEntitySet != null ? remoteEntitySet.NavigateSingle(this, navElement.KeyLocal, navElement.KeyRemote) : null;
+		}
+
+		public IEnumerable<TResult> NavigateMulti<TResult>(string entityTypeName, string navigationPropertyName)
+			where TResult : class, IDerivedEntity
+		{
+			var navElement = this.metadata.EntityTypes[entityTypeName].NavigationProperties[navigationPropertyName];
+			var remoteEntitySet = this.entitySets.ContainsKey(navElement.EntityTypeName) ? (EntitySet<TResult>)this.entitySets[navElement.EntityTypeName] : null;
+			return remoteEntitySet != null ? remoteEntitySet.NavigateMulti(this, navElement.KeyLocal, navElement.KeyRemote) : Enumerable.Empty<TResult>();
+		}
+	}
 
 }

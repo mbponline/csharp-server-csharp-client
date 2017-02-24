@@ -9,6 +9,15 @@ namespace Client.Models.Utils.DAL.Common
             : base()
         {
         }
+
+        public void SetDefaultValues(EntityType entityType)
+        {
+            foreach (var item in entityType.Properties)
+            {
+                this[item.Key] = item.Value.Default;
+
+            }
+        }
     }
 
 }

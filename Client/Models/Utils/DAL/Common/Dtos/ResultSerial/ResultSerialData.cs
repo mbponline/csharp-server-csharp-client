@@ -7,7 +7,7 @@ namespace Client.Models.Utils.DAL.Common
     public class ResultSerialData
     {
         [JsonProperty(PropertyName = "items")]
-        public IEnumerable<object> Items { get; set; }
+        public IEnumerable<Dto> Items { get; set; }
 
         [JsonProperty(PropertyName = "entityTypeName")]
         public string EntityTypeName { get; set; }
@@ -16,7 +16,7 @@ namespace Client.Models.Utils.DAL.Common
         public int TotalCount { get; set; }
 
         [JsonProperty(PropertyName = "relatedItems")]
-        public Dictionary<string, IEnumerable<object>> RelatedItems { get; set; }
+        public Dictionary<string, IEnumerable<Dto>> RelatedItems { get; set; }
     }
 
 }

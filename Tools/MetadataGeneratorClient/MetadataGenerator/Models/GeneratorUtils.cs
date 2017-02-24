@@ -65,6 +65,7 @@ namespace MetadataGenerator.Models
             return string.Join(", ", result);
         }
 
+		/*
         public static void WriteDefaultValues(BlockWriter br, Dictionary<string, Property> etp)
         {
             foreach (var property in etp)
@@ -73,7 +74,36 @@ namespace MetadataGenerator.Models
             }
         }
 
-        public static void WriteProperties(BlockWriter br, Dictionary<string, Property> etp, Dictionary<string, string> dbTypeConvert)
+        public static string GetDefaultValue(object value)
+		{
+			if (value == null)
+			{
+				return "null";
+			}
+			else if (value is bool)
+			{
+				return value.ToString().ToLower();
+			}
+			else if (value is string && string.IsNullOrEmpty((string)value))
+			{
+				return "\"\"";
+			}
+			else if (value is string && (string)value == "ST_GeomFromText('POINT(0 0)')")
+			{
+				return "new { lat = 0, lon = 0 }";
+			}
+			else if (value is string && (string)value == "CURRENT_TIMESTAMP")
+			{
+				return "DateTime.Now";
+			}
+			else
+			{
+				return value.ToString();
+			}
+		}
+		*/
+
+		public static void WriteProperties(BlockWriter br, Dictionary<string, Property> etp, Dictionary<string, string> dbTypeConvert)
         {
             foreach (var property in etp)
             {
@@ -82,38 +112,11 @@ namespace MetadataGenerator.Models
                 nullable = (new string[] { "string", "object", "byte[]" }).Contains(type) ? string.Empty : nullable;
                 var integers = new List<string>() { "int", "short", "sbyte", "ushort" };
                 // Info credit: http://geekswithblogs.net/BlackRabbitCoder/archive/2011/01/27/c.net-little-pitfalls-the-dangers-of-casting-boxed-values.aspx
-                br.WriteLine(string.Format("public {0}{1} {2} {{ get {{ return ({0}{1}){3}this[\"{2}\"]; }} set {{ this[\"{2}\"] = value; }} }}", type, nullable, property.Key, integers.Contains(type) ? "(long)" : string.Empty));
+                br.WriteLine(string.Format("public {0}{1} {2} {{ get {{ return ({0}{1}){3}this.entity.dto[\"{2}\"]; }} set {{ this.entity.dto[\"{2}\"] = value; }} }}", type, nullable, property.Key, integers.Contains(type) ? "(long)" : string.Empty));
             }
             br.WriteLine();
         }
 
-        public static string GetDefaultValue(object value)
-        {
-            if (value == null)
-            {
-                return "null";
-            }
-            else if (value is bool)
-            {
-                return value.ToString().ToLower();
-            }
-            else if (value is string && string.IsNullOrEmpty((string)value))
-            {
-                return "\"\"";
-            }
-            else if (value is string && (string)value == "ST_GeomFromText('POINT(0 0)')")
-            {
-                return "new { lat = 0, lon = 0 }";
-            }
-            else if (value is string && (string)value == "CURRENT_TIMESTAMP")
-            {
-                return "DateTime.Now";
-            }
-            else
-            {
-                return value.ToString();
-            }
-        }
 
         public static void WriteNavigationProperties(BlockWriter br, string entityTypeName, Dictionary<string, NavigationProperty> etnp)
         {
@@ -125,7 +128,7 @@ namespace MetadataGenerator.Models
                 var navigationType = multi ? "Multi" : "Single";
 
                 br.WriteLine("[JsonIgnore]");
-                br.WriteLine(string.Format("public {0} {1} {{ get {{ return this.Navigate{2}<{3}>(\"{4}\", \"{1}\"); }} }}", returnType, navigationProperty.Key, navigationType, anp.EntityTypeName, entityTypeName));
+                br.WriteLine(string.Format("public {0} {1} {{ get {{ return this.entity.Navigate{2}<{3}>(\"{4}\", \"{1}\"); }} }}", returnType, navigationProperty.Key, navigationType, anp.EntityTypeName, entityTypeName));
             }
             br.WriteLine();
         }

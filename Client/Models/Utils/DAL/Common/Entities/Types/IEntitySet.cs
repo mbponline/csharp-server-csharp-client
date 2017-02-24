@@ -4,32 +4,32 @@ using System.Collections.Generic;
 namespace Client.Models.Utils.DAL.Common
 {
 
-    public interface IEntitySet<T>
-        where T : class, IEntity
+    public interface IEntitySet<out T>
+        where T : class, IDerivedEntity
     {
-        List<T> Items { get; }
+        List<IDerivedEntity> Items { get; }
 
-        T NavigateSingle(IEntity remoteEntity, string[] remoteEntityKey, string[] navigationKey);
+        T NavigateSingle(Entity remoteEntity, string[] remoteEntityKey, string[] navigationKey);
 
-        IEnumerable<T> NavigateMulti(IEntity remoteEntity, string[] remoteEntityKey, string[] navigationKey);
+        IEnumerable<T> NavigateMulti(Entity remoteEntity, string[] remoteEntityKey, string[] navigationKey);
 
-        IEnumerable<T> NavigateAllRelated(IEnumerable<object> remoteEntities, string[] remoteEntityKey, string[] navigationKey);
+        IEnumerable<T> NavigateAllRelated(IEnumerable<Dto> remoteDtos, string[] remoteEntityKey, string[] navigationKey);
 
-        T FindByKey(T partialEntity);
+        T FindByKey(Dto partialDto);
 
         T Find(Func<T, bool> predicate);
 
         IEnumerable<T> Filter(Func<T, bool> predicate);
 
-        void DeleteEntity(T entity);
+        void DeleteEntity(IDerivedEntity derivedEntity);
 
         void DeleteAll();
 
         void Dispose();
 
-        T UpdateEntity(T dto);
+        T UpdateEntity(Dto dto);
 
-        void AttachEntitySet(List<T> dtos);
+        void AttachEntitySet(List<Dto> dtos);
     }
 
 }

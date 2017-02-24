@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 namespace Client.Models.Utils.DAL.Common
 {
     public class NavigationHelper<T>
-        where T : class, IEntity
+        where T : class, IDerivedEntity
     {
         public NavigationHelper()
         {

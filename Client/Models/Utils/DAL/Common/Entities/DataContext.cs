@@ -1,181 +1,141 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Client.Models.Utils.DAL.Common
 {
-    public class DataContext
-    {
-        public DataContext(Metadata metadata)
-        {
-            this.metadata = metadata;
-            this.entitySets = new Dictionary<string, IEntitySet<IEntity>>();
-        }
+	public class DataContext
+	{
+		public DataContext(Metadata metadata)
+		{
+			this.metadata = metadata;
+			this.entitySets = new Dictionary<string, IEntitySet<IDerivedEntity>>();
+		}
 
-        private Metadata metadata;
+		private Metadata metadata;
 
-        public Dictionary<string, IEntitySet<IEntity>> entitySets;
+		public Dictionary<string, IEntitySet<IDerivedEntity>> entitySets;
 
-        public Dictionary<string, List<IEntity>> GetDataSets()
-        {
-            var result = new Dictionary<string, List<IEntity>>();
-            foreach (var set in this.entitySets)
-            {
-                result.Add(set.Key, set.Value.Items);
-            }
-            return result;
-        }
 
-        public IEnumerable<IEntity> GetRelatedEntities(string entityTypeName, IEnumerable<object> entities, string navigationPropertyName)
-        {
-            var navElement = this.metadata.EntityTypes[entityTypeName].NavigationProperties[navigationPropertyName];
-            var remoteEntitySet = this.entitySets.ContainsKey(navElement.EntityTypeName) ? this.entitySets[navElement.EntityTypeName] : null;
-            return remoteEntitySet != null ? remoteEntitySet.NavigateAllRelated(entities, navElement.KeyLocal, navElement.KeyRemote) : new List<IEntity>();
-        }
+		public Dictionary<string, List<IDerivedEntity>> GetEntitySets()
+		{
+			var result = new Dictionary<string, List<IDerivedEntity>>();
+			foreach (var entitySet in this.entitySets)
+			{
+				var entitySetValue = entitySet.Value;
+				result.Add(entitySet.Key, entitySetValue.Items); //.Cast<IDerivedEntity>().ToList()
+			}
+			return result;
+		}
 
-        public T CreateItemDetached<T>()
-        {
-            var entityTypeName = typeof(T).Name;
-            //if (!this.entitySets.ContainsKey(entityTypeName))
-            //{
-            //    this.InitializeDataSet(entityTypeName);
-            //}
-            var entityType = Type.GetType(this.metadata.Namespace + "." + entityTypeName);
-            var entity = Activator.CreateInstance(entityType);
-            return (T)entity;
-        }
+		public IEnumerable<IDerivedEntity> GetRelatedEntities(string entityTypeName, IEnumerable<Dto> dtos, string navigationPropertyName)
+		{
+			var navElement = this.metadata.EntityTypes[entityTypeName].NavigationProperties[navigationPropertyName];
+			var remoteEntitySet = this.entitySets.ContainsKey(navElement.EntityTypeName) ? this.entitySets[navElement.EntityTypeName] : null;
+			return remoteEntitySet != null ? remoteEntitySet.NavigateAllRelated(dtos, navElement.KeyLocal, navElement.KeyRemote) : Enumerable.Empty<IDerivedEntity>(); //.Cast<IDerivedEntity>().ToList()
+		}
 
-        public void Clear()
-        {
-            foreach (var set in this.entitySets)
-            {
-                this.entitySets[set.Key].DeleteAll();
-            }
-        }
+		public T CreateItemDetached<T>(string entityTypeName)
+			where T : class, IDerivedEntity
+		{
+			//if (!this.entitySets.ContainsKey(entityTypeName))
+			//{
+			//    this.InitializeDataSet(entityTypeName);
+			//}
+			//var entityType = Type.GetType(this.metadata.Namespace + "." + entityTypeName);
+			//var entity = Activator.CreateInstance(entityType);
 
-        public void Dispose()
-        {
-            // se va apela inainte de incetarea utilizarii obiectului
-            // pentru a evita aparitia de memory leaks si a usura activitatea GC-ului
-            foreach (var set in this.entitySets)
-            {
-                this.entitySets[set.Key].Dispose();
-            }
-            this.entitySets = null;
-            this.metadata = null;
-        }
+			var entityType = this.metadata.EntityTypes[entityTypeName];
+			var dto = new Dto();
+			dto.SetDefaultValues(entityType);
+			var entity = new Entity(entityTypeName, dto);
+			var derivedEntityType = Type.GetType(this.metadata.Namespace + "." + entityTypeName);
+			var derivedEntity = (T)Activator.CreateInstance(derivedEntityType, new object[] { entity });
+			return derivedEntity;
+		}
 
-        public IEnumerable<T> AttachEntities<T>(ResultSerialData resultSerialData)
-            where T : class, IEntity
-        {
-            var entityType = typeof(T);
-            var entityList = (List<T>)this.DtosToEntities(entityType, resultSerialData.Items);
-            var dataSet = this.TraverseResults<T>(entityList);
-            this.AttachRelatedItems(resultSerialData.RelatedItems);
-            return dataSet;
-        }
+		public void Clear()
+		{
+			foreach (var entitySet in this.entitySets)
+			{
+				var entitySetValue = entitySet.Value;
+				entitySetValue.DeleteAll();
+			}
+		}
 
-        public T AttachSingleEntitiy<T>(ResultSingleSerialData resultSingleSerialData)
-            where T : class, IEntity
-        {
-            var entityType = typeof(T);
-            var entityList = (List<T>)this.DtosToEntities(entityType, new List<object>() { resultSingleSerialData.Item });
-            var dataSet = this.TraverseResults<T>(entityList);
-            this.AttachRelatedItems(resultSingleSerialData.RelatedItems);
-            return dataSet.FirstOrDefault();
-        }
+		public void Dispose()
+		{
+			// se va apela inainte de incetarea utilizarii obiectului
+			// pentru a evita aparitia de memory leaks si a usura activitatea GC-ului
+			foreach (var entitySet in this.entitySets)
+			{
+				var entitySetValue = entitySet.Value;
+				entitySetValue.Dispose();
+			}
+			this.entitySets = null;
+			this.metadata = null;
+		}
 
-        private void AttachRelatedItems(Dictionary<string, IEnumerable<object>> relatedItems)
-        {
-            if (relatedItems != null)
-            {
-                foreach (var item in relatedItems)
-                {
-                    var entityType = Type.GetType(this.metadata.Namespace + "." + item.Key);
-                    var entityList = (IEnumerable<object>)this.DtosToEntities(entityType, relatedItems[entityType.Name]);
-                    this.TraverseResults(entityType, entityList);
-                }
-            }
-        }
+		public IEnumerable<IDerivedEntity> AttachEntities(ResultSerialData resultSerialData)
+		{
+			var entityTypeName = resultSerialData.EntityTypeName;
+			var derivedEntityList = this.TraverseResults(entityTypeName, resultSerialData.Items);
+			this.AttachRelatedItems(resultSerialData.RelatedItems);
+			return derivedEntityList;
+		}
 
-        private IList DtosToEntities(Type entityType, IEnumerable<object> dtos)
-        {
-            var result = DalUtils.CreatList(entityType);
-            foreach (var item in dtos)
-            {
-                var temp = JObject.FromObject(item).ToObject(entityType);
-                result.Add(temp);
-            }
-            return result;
-        }
+		public IDerivedEntity AttachSingleEntitiy(ResultSingleSerialData resultSingleSerialData)
+		{
+			var entityTypeName = resultSingleSerialData.EntityTypeName;
+			var derivedEntityList = this.TraverseResults(entityTypeName, new List<Dto>() { resultSingleSerialData.Item });
+			this.AttachRelatedItems(resultSingleSerialData.RelatedItems);
+			return derivedEntityList.FirstOrDefault();
+		}
 
-        private IEnumerable<object> TraverseResults(Type entityType, IEnumerable<object> items)
-        {
-            if (!this.entitySets.ContainsKey(entityType.Name))
-            {
-                this.InitializeDataSet(entityType);
-            }
-            var entities = this.ProcessEntitySet(entityType, items);
-            return entities;
-        }
+		private void AttachRelatedItems(Dictionary<string, IEnumerable<Dto>> relatedItems)
+		{
+			if (relatedItems != null)
+			{
+				foreach (var item in relatedItems)
+				{
+					this.TraverseResults(item.Key, item.Value);
+				}
+			}
+		}
 
-        private IEnumerable<T> TraverseResults<T>(IList items)
-            where T : class, IEntity
-        {
-            var entityType = typeof(T);
-            if (!this.entitySets.ContainsKey(entityType.Name))
-            {
-                this.InitializeDataSet(entityType);
-            }
-            var entities = this.ProcessEntitySet<T>((List<T>)items);
-            return entities;
-        }
+		private IEnumerable<IDerivedEntity> TraverseResults(string entityTypeName, IEnumerable<Dto> dtos)
+		{
+			if (!this.entitySets.ContainsKey(entityTypeName))
+			{
+				this.InitializeDataSet(entityTypeName);
+			}
+			var derivedEntityList = this.ProcessEntitySet(entityTypeName, dtos);
+			return derivedEntityList;
+		}
 
-        private IEnumerable<object> ProcessEntitySet(Type entityType, IEnumerable<object> items)
-        {
-            var entities = new List<object>();
 
-            foreach (var item in items)
-            {
-                var newEntity = this.ProcessEntity(entityType, item);
-                entities.Add(newEntity);
-            }
-            return entities;
-        }
+		private IEnumerable<IDerivedEntity> ProcessEntitySet(string entityTypeName, IEnumerable<Dto> dtos)
+		{
+			var derivedEntityList = new List<IDerivedEntity>();
+			foreach (var dto in dtos)
+			{
+				var derivedEntity = this.ProcessEntity(entityTypeName, dto);
+				derivedEntityList.Add(derivedEntity);
+			}
+			return derivedEntityList;
+		}
 
-        private IEnumerable<T> ProcessEntitySet<T>(List<T> items)
-            where T : class, IEntity
-        {
-            var entities = new List<T>();
-            foreach (var item in items)
-            {
-                var newEntity = this.ProcessEntity<T>(item);
-                entities.Add(newEntity);
-            }
-            return entities;
-        }
+		private IDerivedEntity ProcessEntity(string entityTypeName, Dto dto)
+		{
+			var entitySetValue = this.entitySets[entityTypeName];
+			var derivedEntity = entitySetValue.UpdateEntity(dto);
+			return derivedEntity;
+		}
 
-        private object ProcessEntity(Type entityType, object item)
-        {
-            var newItem = this.entitySets[entityType.Name].UpdateEntity((IEntity)item);
-            return newItem;
-        }
-
-        private T ProcessEntity<T>(T item)
-            where T : class, IEntity
-        {
-            var entityType = typeof(T);
-            var newItem = this.entitySets[entityType.Name].UpdateEntity(item);
-            return newItem as T;
-        }
-
-        private void InitializeDataSet(Type entityType)
-        {
-            // Initializeaza EntitySet-ul precizat la momentul utilizarii (Lazy)
-            var entitySet = new EntitySet<IEntity>(entityType, this.entitySets, this.metadata);
-            this.entitySets[entityType.Name] = entitySet;
-        }
-    }
+		private void InitializeDataSet(string entityTypeName)
+		{
+			// Initializeaza EntitySet-ul precizat la momentul utilizarii (Lazy)
+			this.entitySets[entityTypeName] = EntitySet<IDerivedEntity>.CreateEntitySet(entityTypeName, this.entitySets, this.metadata);
+		}
+	}
 }

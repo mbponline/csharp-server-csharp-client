@@ -7,7 +7,7 @@ namespace Client.Models.Utils.DAL.Common
 {
 
     public class DataViewRemote<T>
-        where T : class, IEntity
+        where T : class, IDerivedEntity
     {
         public DataViewRemote(DataAdapter dataAdapter, DataContext dataContext, Metadata metadata)
         {
@@ -28,13 +28,13 @@ namespace Client.Models.Utils.DAL.Common
             var totalCount = 0;
             //BusyIndicator.instance.start();
             var resultSerialResponse = await this.dataAdapter.QueryAllAsync(this.entityTypeName, queryObject);
-            var tempDataSet = this.dataContext.AttachEntities<T>(resultSerialResponse.Data);
+            var tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data).Select(it => (T)it);
             dataSet.AddRange(tempDataSet);
             var moreData = resultSerialResponse != null && !string.IsNullOrEmpty(resultSerialResponse.NextLink);
             while (moreData)
             {
                 resultSerialResponse = await this.dataAdapter.queryAllNextAsync(resultSerialResponse.NextLink);
-                tempDataSet = this.dataContext.AttachEntities<T>(resultSerialResponse.Data);
+                tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data).Select(it => (T)it);
                 dataSet.AddRange(tempDataSet);
                 totalCount = resultSerialResponse.Data.TotalCount;
                 moreData = resultSerialResponse != null && !string.IsNullOrEmpty(resultSerialResponse.NextLink);
@@ -49,110 +49,112 @@ namespace Client.Models.Utils.DAL.Common
             return queryResult;
         }
 
-        public async Task<T> GetSingleItemAsync(Dto partialEntity, string[] expand = null)
+        public async Task<T> GetSingleItemAsync(Dto partialDto, string[] expand = null)
         {
             //BusyIndicator.instance.start();
-            var resultSingleSerialData = await this.dataAdapter.LoadOneAsync(this.entityTypeName, partialEntity, expand);
+            var resultSingleSerialData = await this.dataAdapter.LoadOneAsync(this.entityTypeName, partialDto, expand);
             //BusyIndicator.instance.stop();
-            var entity = this.dataContext.AttachSingleEntitiy<T>(resultSingleSerialData);
-            return entity;
+            var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
+            return (T)derivedEntity;
         }
 
-        public async Task<IEnumerable<T>> GetMultipleItemsAsync(Dto[] partialEntities, string[] expand = null)
+        public async Task<IEnumerable<T>> GetMultipleItemsAsync(Dto[] partialDtos, string[] expand = null)
         {
             //BusyIndicator.instance.start();
-            var resultSerialData = await this.dataAdapter.LoadManyAsync(this.entityTypeName, partialEntities, expand);
+            var resultSerialData = await this.dataAdapter.LoadManyAsync(this.entityTypeName, partialDtos, expand);
             //BusyIndicator.instance.stop();
-            var entities = this.dataContext.AttachEntities<T>(resultSerialData);
-            return entities;
+            var derivedEntityList = this.dataContext.AttachEntities(resultSerialData).Select(it => (T)it);
+            return derivedEntityList;
         }
 
-        public async Task<T> InsertItemAsync(Dto entity)
+        public async Task<T> InsertItemAsync(Dto dto)
         {
             var keyNames = this.metadata.EntityTypes[this.entityTypeName].Key;
-            var dataOriginal = this.dataContext.CreateItemDetached<T>() as Dto;
-            var patchItem = this.GetPatchItemAsync(keyNames, entity, dataOriginal);
+            var dataOriginal = this.dataContext.CreateItemDetached<T>(this.entityTypeName);
+            var patchItem = this.GetPatchItemAsync(keyNames, dto, dataOriginal.entity.dto);
             //BusyIndicator.instance.start();
-            var resultSingleSerialData = await this.dataAdapter.PostItemAsync(this.entityTypeName, entity);
+            var resultSingleSerialData = await this.dataAdapter.PostItemAsync(this.entityTypeName, dto);
             //BusyIndicator.instance.stop();
-            var result = this.dataContext.AttachSingleEntitiy<T>(resultSingleSerialData);
-            return result;
+            var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
+            return (T)derivedEntity;
         }
 
-        public async Task<IEnumerable<T>> InsertItemsAsync(Dto[] entities)
+        public async Task<IEnumerable<T>> InsertItemsAsync(Dto[] dtos)
         {
-            if (entities.Length == 0)
+            if (dtos.Length == 0)
             {
                 return Enumerable.Empty<T>();
             }
 
-            var result = new List<T>();
+            var derivedEntityList = new List<T>();
             //BusyIndicator.instance.start();
-            var resultSingleSerialDataList = await this.dataAdapter.PostItemsAsync(this.entityTypeName, entities);
+            var resultSingleSerialDataList = await this.dataAdapter.PostItemsAsync(this.entityTypeName, dtos);
             //BusyIndicator.instance.stop();
             foreach (var resultSingleSerialData in resultSingleSerialDataList)
             {
-                var entity = this.dataContext.AttachSingleEntitiy<T>(resultSingleSerialData);
-                result.Add(entity);
+                var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
+                derivedEntityList.Add((T)derivedEntity);
             }
-            return result;
+            return derivedEntityList;
         }
 
-        public async Task<T> UpdateItemAsync(Dto partialEntity)
+        public async Task<T> UpdateItemAsync(Dto partialDto)
         {
-            var dataOriginal = this.dataContext.entitySets[this.entityTypeName].FindByKey((IEntity)partialEntity);
+            var dataOriginal = this.dataContext.entitySets[this.entityTypeName].FindByKey(partialDto);
             // aplica modificarile datelor aflate in DataContext
-            DalUtils.Extend((Dto)dataOriginal, partialEntity);
+            DalUtils.Extend(dataOriginal.entity.dto, partialDto);
             //BusyIndicator.instance.start();
-            var resultSingleSerialData = await this.dataAdapter.PutItemAsync(this.entityTypeName, (Dto)dataOriginal);
+            var resultSingleSerialData = await this.dataAdapter.PutItemAsync(this.entityTypeName, dataOriginal.entity.dto);
             //BusyIndicator.instance.stop();
-            var entity = this.dataContext.AttachSingleEntitiy<T>(resultSingleSerialData);
-            return entity;
+            var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
+            return (T)derivedEntity;
         }
 
-        public async Task<IEnumerable<T>> UpdateItemsAsync(Dto[] partialEntities)
+        public async Task<IEnumerable<T>> UpdateItemsAsync(Dto[] partialDtos)
         {
             var keyNames = this.metadata.EntityTypes[this.entityTypeName].Key;
-            var items = new List<Dto>();
-            foreach (var partialEntity in partialEntities)
+            var dtos = new List<Dto>();
+            foreach (var partialDto in partialDtos)
             {
-                var dataOriginal = this.dataContext.entitySets[this.entityTypeName].FindByKey((IEntity)partialEntity);
+                var dataOriginal = this.dataContext.entitySets[this.entityTypeName].FindByKey(partialDto);
                 // creeaza un nou obiect ce va cuprinde doar campurile modificate
-                var patchItem = this.GetPatchItemAsync(keyNames, partialEntity, (Dto)dataOriginal);
-                items.Add(new Dto() {
+                var patchItem = this.GetPatchItemAsync(keyNames, partialDto, dataOriginal.entity.dto);
+                dtos.Add(new Dto() {
                     { "patchItem", patchItem },
-                    { "partialEntity", partialEntity }
+                    { "partialDto", partialDto }
                 });
-                DalUtils.Extend((Dto)dataOriginal, partialEntity);
+                DalUtils.Extend(dataOriginal.entity.dto, partialDto);
             }
 
-            var result = new List<T>();
+            var derivedEntityList = new List<T>();
             //BusyIndicator.instance.start();
-            var resultSingleSerialDataList = await this.dataAdapter.PatchItemsAsync(this.entityTypeName, items.ToArray());
+            var resultSingleSerialDataList = await this.dataAdapter.PatchItemsAsync(this.entityTypeName, dtos.ToArray());
             //BusyIndicator.instance.stop();
             foreach (var dataDto in resultSingleSerialDataList)
             {
-                var entity = this.dataContext.AttachSingleEntitiy<T>(dataDto);
-                result.Add(entity);
+                var derivedEntity = this.dataContext.AttachSingleEntitiy(dataDto);
+                derivedEntityList.Add((T)derivedEntity);
             }
-            return result;
+            return derivedEntityList;
         }
 
-        public async Task DeleteItemAsync(Dto partialEntity)
+        public async Task DeleteItemAsync(Dto partialDto)
         {
-            var dataOriginal = this.dataContext.entitySets[this.entityTypeName].FindByKey((IEntity)partialEntity);
-            this.dataContext.entitySets[this.entityTypeName].DeleteEntity(dataOriginal);
-            await this.dataAdapter.DeleteItemAsync(this.entityTypeName, partialEntity);
+            var entitySet = (IEntitySet<T>)this.dataContext.entitySets[this.entityTypeName];
+            var dataOriginal = entitySet.FindByKey(partialDto);
+            entitySet.DeleteEntity(dataOriginal);
+            await this.dataAdapter.DeleteItemAsync(this.entityTypeName, partialDto);
         }
 
-        public async Task DeleteItemsAsync(Dto[] partialEntities)
+        public async Task DeleteItemsAsync(Dto[] partialDtos)
         {
-            foreach (var partialEntity in partialEntities)
+            var entitySet = (IEntitySet<T>)this.dataContext.entitySets[this.entityTypeName];
+            foreach (var partialDto in partialDtos)
             {
-                var dataOriginal = this.dataContext.entitySets[this.entityTypeName].FindByKey((IEntity)partialEntity);
-                this.dataContext.entitySets[this.entityTypeName].DeleteEntity(dataOriginal);
+                var dataOriginal = entitySet.FindByKey(partialDto);
+                entitySet.DeleteEntity(dataOriginal);
             }
-            await this.dataAdapter.DeleteItemsAsync(this.entityTypeName, partialEntities);
+            await this.dataAdapter.DeleteItemsAsync(this.entityTypeName, partialDtos);
         }
 
 
