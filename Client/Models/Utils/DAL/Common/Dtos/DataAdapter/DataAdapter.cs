@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Client.Models.Utils.DAL.Common
 {
@@ -42,7 +43,8 @@ namespace Client.Models.Utils.DAL.Common
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSerialResponse = await response.Content.ReadAsAsync<ResultSerialResponse>();
+                var resultSerialResponseString = await response.Content.ReadAsStringAsync();
+                var resultSerialResponse = JsonConvert.DeserializeObject<ResultSerialResponse>(resultSerialResponseString);
                 return resultSerialResponse;
             }
             return null;
@@ -67,11 +69,13 @@ namespace Client.Models.Utils.DAL.Common
             }
             else
             {
-                response = await this.client.PostAsJsonAsync<object>(url, null);
+                response = await this.client.PostAsync(url, null);
             }
+
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<TResult>();
+                var resultString = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<TResult>(resultString);
                 return result;
             }
             return null;
@@ -94,7 +98,8 @@ namespace Client.Models.Utils.DAL.Common
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialData = await response.Content.ReadAsAsync<ResultSingleSerialData>();
+                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
                 return resultSingleSerialData;
             }
             return null;
@@ -112,7 +117,8 @@ namespace Client.Models.Utils.DAL.Common
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSerialData = await response.Content.ReadAsAsync<ResultSerialData>();
+                var resultSerialDataString = await response.Content.ReadAsStringAsync();
+                var resultSerialData = JsonConvert.DeserializeObject<ResultSerialData>(resultSerialDataString);
                 return resultSerialData;
             }
             return null;
@@ -126,10 +132,12 @@ namespace Client.Models.Utils.DAL.Common
             var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
             var url = this.serviceUrl + "crud/" + entitySetName;
 
-            var response = await this.client.PostAsJsonAsync<Dto>(url, patchItem);
+            var jsonPatchItem = JsonConvert.SerializeObject(patchItem);
+            var response = await this.client.PostAsync(url, new StringContent(jsonPatchItem, Encoding.UTF8, "application/json"));
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialData = await response.Content.ReadAsAsync<ResultSingleSerialData>();
+                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
                 return resultSingleSerialData;
             }
             return null;
@@ -143,10 +151,12 @@ namespace Client.Models.Utils.DAL.Common
             var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
             var url = this.serviceUrl + "crud/" + "batch/" + entitySetName;
 
-            var response = await this.client.PostAsJsonAsync<Dto[]>(url, entities);
+            var jsonPatchItem = JsonConvert.SerializeObject(entities);
+            var response = await this.client.PostAsync(url, new StringContent(jsonPatchItem, Encoding.UTF8, "application/json"));
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataList = await response.Content.ReadAsAsync<List<ResultSingleSerialData>>();
+                var resultSingleSerialDataListString = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataList = JsonConvert.DeserializeObject<List<ResultSingleSerialData>>(resultSingleSerialDataListString);
                 return resultSingleSerialDataList;
             }
             return null;
@@ -161,10 +171,12 @@ namespace Client.Models.Utils.DAL.Common
             var keyNames = this.metadata.EntityTypes[entityTypeName].Key;
             var url = this.serviceUrl + "crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = (new List<Dto>() { DataAdapterUtils.GetKeyFromData(keyNames, entity) }).ToArray() });
 
-            var response = await this.client.PutAsJsonAsync<Dto>(url, entity);
+            var jsonPatchItem = JsonConvert.SerializeObject(entity);
+            var response = await this.client.PutAsync(url, new StringContent(jsonPatchItem, Encoding.UTF8, "application/json"));
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialData = await response.Content.ReadAsAsync<ResultSingleSerialData>();
+                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
                 return resultSingleSerialData;
             }
             return null;
@@ -181,14 +193,16 @@ namespace Client.Models.Utils.DAL.Common
 
             // Info credit: http://benfoster.io/blog/adding-patch-support-to-httpclient
             HttpRequestMessage request;
-            using (var content = new ObjectContent<Dto>((Dto)item["patchItem"], new JsonMediaTypeFormatter()))
+            var jsonPatchItem = JsonConvert.SerializeObject(item["patchItem"]);
+            using (var content = new StringContent(jsonPatchItem, Encoding.UTF8, "application/json"))
             {
                 request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
             }
             var response = await this.client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialData = await response.Content.ReadAsAsync<ResultSingleSerialData>();
+                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
                 return resultSingleSerialData;
             }
             return null;
@@ -204,15 +218,17 @@ namespace Client.Models.Utils.DAL.Common
 
             // Info credit: http://benfoster.io/blog/adding-patch-support-to-httpclient
             HttpRequestMessage request;
-            using (var content = new ObjectContent<Dto[]>(items.Select((item) => (Dto)item["patchItem"]).ToArray(), new JsonMediaTypeFormatter()))
+            var jsonPatchItems = JsonConvert.SerializeObject(items.Select((item) => (Dto)item["patchItem"]).ToArray());
+            using (var content = new StringContent(jsonPatchItems, Encoding.UTF8, "application/json"))
             {
                 request = new HttpRequestMessage(new HttpMethod("PATCH"), url) { Content = content };
             };
             var response = await this.client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialData = await response.Content.ReadAsAsync<List<ResultSingleSerialData>>();
-                return resultSingleSerialData;
+                var resultSingleSerialDataListString = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataList = JsonConvert.DeserializeObject<List<ResultSingleSerialData>>(resultSingleSerialDataListString);
+                return resultSingleSerialDataList;
             }
             return null;
         }
@@ -229,8 +245,9 @@ namespace Client.Models.Utils.DAL.Common
             var response = await this.client.DeleteAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataList = await response.Content.ReadAsAsync<ResultSingleSerialData>();
-                return resultSingleSerialDataList;
+                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
+                return resultSingleSerialData;
             }
             return null;
         }
@@ -247,8 +264,9 @@ namespace Client.Models.Utils.DAL.Common
             var response = await this.client.DeleteAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataList = await response.Content.ReadAsAsync<ResultSerialData>();
-                return resultSingleSerialDataList;
+                var resultSerialDataString = await response.Content.ReadAsStringAsync();
+                var resultSerialData = JsonConvert.DeserializeObject<ResultSerialData>(resultSerialDataString);
+                return resultSerialData;
             }
             return null;
 
@@ -262,7 +280,8 @@ namespace Client.Models.Utils.DAL.Common
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSerialResponse = await response.Content.ReadAsAsync<ResultSerialResponse>();
+                var resultSerialResponseString = await response.Content.ReadAsStringAsync();
+                var resultSerialResponse = JsonConvert.DeserializeObject<ResultSerialResponse>(resultSerialResponseString);
                 return resultSerialResponse;
             }
             return null;

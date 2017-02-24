@@ -9,7 +9,7 @@ namespace Client.Models.Utils.DAL
 
         public async Task InitializeAsync()
         {
-            var baseUrl = "http://localhost:10073/";
+            var baseUrl = "http://localhost:8080/";
             var serviceUrl = "/api/datasource/";
             this.DataService = await DataService.CreateInstanceAsync(baseUrl, serviceUrl);
             await LoadCacheDataAsync();

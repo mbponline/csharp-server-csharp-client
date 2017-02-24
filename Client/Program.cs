@@ -13,7 +13,6 @@ namespace Client
             RunAsync().Wait();
         }
 
-
         static async Task RunAsync()
         {
             var dataAgent = new DataAgent();
@@ -46,8 +45,7 @@ namespace Client
 
             dataAgent.DataService.ClearDataContext();
 
-            Console.WriteLine("Done. Press any key to exit");
-            Console.ReadKey();
+            Console.WriteLine("Done.");
 
         }
 

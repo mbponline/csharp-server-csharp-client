@@ -1,5 +1,4 @@
-﻿using System.Timers;
-
+﻿
 namespace Client.Models.Utils.DAL.Common
 {
     class BusyIndicator
@@ -15,18 +14,14 @@ namespace Client.Models.Utils.DAL.Common
 
         public void Start()
         {
-            using (var timer = new Timer(500))
+            var timer = new System.Threading.Timer((e) =>
             {
-                timer.Elapsed += (source, e) =>
+                if (this.busyCount > 0 && !this.isBusy)
                 {
-                    if (this.busyCount > 0 && !this.isBusy)
-                    {
-                        // TODO: add start logic
-                        this.isBusy = true;
-                    }
-                };
-                timer.Enabled = true;
-            };
+                    // TODO: add start logic
+                    this.isBusy = true;
+                }
+            }, null, 0, 500);
         }
 
         public void Stop()

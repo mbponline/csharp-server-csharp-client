@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Client.Models.Utils.DAL.Common
 {
@@ -34,10 +35,11 @@ namespace Client.Models.Utils.DAL.Common
                 client.BaseAddress = new Uri(baseUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var response = await client.GetAsync(serviceUrl + "crud/metadata");
+                var response = await client.GetAsync(serviceUrl + "metadata");
                 if (response.IsSuccessStatusCode)
                 {
-                    var metadata = await response.Content.ReadAsAsync<Metadata>();
+                    var metadataString = await response.Content.ReadAsStringAsync();
+                    var metadata = JsonConvert.DeserializeObject<Metadata>(metadataString);
                     return metadata;
                 }
                 else
