@@ -1,5 +1,5 @@
-﻿using Client.Models.Utils.DAL;
-using Client.Models.Utils.DAL.Common;
+﻿using Client.Modules.Utils.DAL;
+using Client.Modules.Utils.DAL.Common;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
