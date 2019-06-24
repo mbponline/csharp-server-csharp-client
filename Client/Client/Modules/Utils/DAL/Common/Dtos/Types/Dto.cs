@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using MetadataCli = Client.Modules.Utils.DAL.Common.MetadataCli;
 
 namespace Client.Modules.Utils.DAL.Common
 {
@@ -10,7 +11,7 @@ namespace Client.Modules.Utils.DAL.Common
         {
         }
 
-        public void SetDefaultValues(EntityType entityType)
+        public void SetDefaultValues(MetadataCli.EntityType entityType)
         {
             foreach (var item in entityType.Properties)
             {

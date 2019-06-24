@@ -11,13 +11,7 @@ namespace Client.Modules.Utils.DAL.Common
 
         public string Filter { get; set; }
 
-        public List<FilterExpand> FilterExpand { get; set; }
-
-        // daca este prezent acest camp continand SQL text atunci,
-        // in loc sa se foloseasca ... table AS it ..., la constructia query-ului,
-        // se foloseste ... (customQueryTable) AS it ...
-        // Acesta ar trebui sa produca aceleasi campuri
-        public string CustomQueryTable { get; set; }
+        public FilterExpand[] FilterExpand { get; set; }
 
         public string[] OrderBy { get; set; }
 

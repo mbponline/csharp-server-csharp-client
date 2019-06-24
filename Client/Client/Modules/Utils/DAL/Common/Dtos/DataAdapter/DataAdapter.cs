@@ -6,21 +6,22 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using MetadataCli = Client.Modules.Utils.DAL.Common.MetadataCli;
 
 namespace Client.Modules.Utils.DAL.Common
 {
     public class DataAdapter
     {
-        public DataAdapter(Metadata metadata, string baseUrl, string serviceUrl)
+        public DataAdapter(string baseUrl, string apiUrl, MetadataCli.Metadata metadataCli)
         {
-            this.metadata = metadata;
-            this.serviceUrl = serviceUrl;
-
             this.client = new HttpClient();
             this.client.BaseAddress = new Uri(baseUrl);
             this.client.DefaultRequestHeaders.Accept.Clear();
             this.client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+            this.apiUrl = apiUrl;
+            this.metadataCli = metadataCli;
         }
 
         ~DataAdapter()
@@ -28,79 +29,129 @@ namespace Client.Modules.Utils.DAL.Common
             this.client.Dispose();
         }
 
-        private readonly Metadata metadata;
-        private readonly string serviceUrl;
         private readonly HttpClient client;
+        private readonly string apiUrl;
+        private readonly MetadataCli.Metadata metadataCli;
 
         /**
          * Query entity collection
          */
-        public async Task<ResultSerialResponse> QueryAllAsync(string entityTypeName, QueryObject queryObject)
+        public async Task<JToken> QueryAllAsync(string entityTypeName, QueryObject queryObject)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var url = this.serviceUrl + "crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(queryObject);
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var url = this.apiUrl + "/crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(queryObject);
 
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSerialResponseString = await response.Content.ReadAsStringAsync();
-                var resultSerialResponse = JsonConvert.DeserializeObject<ResultSerialResponse>(resultSerialResponseString);
-                return resultSerialResponse;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSerialResponseToken = JToken.Parse(json);
+                return resultSerialResponseToken;
             }
             return null;
         }
 
         /**
-         * Service operation call
+         * Entity Function call (a service operation that returns entities and has no side effects)
          */
-        public async Task<TResult> QueryServiceOperationAsync<TResult>(string operationName, string paramsQueryString, QueryObject queryObject, string httpMethod, bool returnCollection)
-            where TResult : class
+        public async Task<JToken> CallEntityFunctionAsync(string functionName, Dictionary<string, object> paramsObject, QueryObject queryObject, string returnTypeName, bool returnCollection)
         {
-            if (returnCollection && httpMethod == "GET")
-            {
-                queryObject.Count = true;
-            }
-            var url = this.serviceUrl + "operations/" + operationName + "?" + paramsQueryString + "&" + QueryUtils.RenderQueryString(queryObject);
+            queryObject.Count = returnCollection;
+            var paramsQueryString = DataAdapterUtils.CreateParamsQueryString(paramsObject);
 
-            HttpResponseMessage response;
-            if (httpMethod == "GET")
-            {
-                response = await this.client.GetAsync(url);
-            }
-            else
-            {
-                response = await this.client.PostAsync(url, null);
-            }
+            var url = this.apiUrl + "/operations/" + functionName + "?" + paramsQueryString + "&" + QueryUtils.RenderQueryString(queryObject);
+
+            var response = await this.client.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
             {
-                var resultString = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<TResult>(resultString);
-                return result;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultToken = JToken.Parse(json);
+                return resultToken;
             }
             return null;
         }
+
+        /**
+         * Entity Action call (a service operation that returns entities and may produce side effects)
+         */
+        public async Task<JToken> CallEntityActionAsync(string actionName, Dictionary<string, object> paramsObject, string returnTypeName)
+        {
+            var paramsQueryString = DataAdapterUtils.CreateParamsQueryString(paramsObject);
+
+            var url = this.apiUrl + "/operations/" + actionName + "?" + paramsQueryString;
+
+            var response = await this.client.PostAsync(url, null); ;
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var resultToken = JToken.Parse(json);
+                return resultToken;
+            }
+            return null;
+        }
+
+        /**
+         * Value Function call (a service operation that returns values and has no side effects)
+         */
+        public async Task<JToken> CallValueFunctionAsync(string functionName, Dictionary<string, object> paramsObject)
+        {
+            var paramsQueryString = DataAdapterUtils.CreateParamsQueryString(paramsObject);
+
+            var url = this.apiUrl + "/operations/" + functionName + "?" + paramsQueryString;
+
+            var response = await this.client.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var resultToken = JToken.Parse(json);
+                return resultToken;
+            }
+            return null;
+        }
+
+        /**
+         * Value Action call (a service operation that returns values and may produce side effects)
+         */
+        public async Task<JToken> CallValueActionAsync(string actionName, Dictionary<string, object> paramsObject)
+        {
+            var url = this.apiUrl + "/operations/" + actionName;
+            var paramsObjectDto = JsonConvert.SerializeObject(paramsObject);
+
+            var response = await this.client.PostAsync(url, new StringContent(paramsObjectDto, Encoding.UTF8, "application/json"));
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var resultToken = JToken.Parse(json);
+                return resultToken;
+            }
+            return null;
+        }
+
 
         /**
          * Retrive a single entity
          */
-        public async Task<ResultSingleSerialData> LoadOneAsync(string entityTypeName, Dto partialEntity, string[] expand)
+        public async Task<JToken> LoadOneAsync(string entityTypeName, Dto partialDto, string[] expand)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var keyNames = this.metadata.EntityTypes[entityTypeName].Key;
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var keyNames = this.metadataCli.EntityTypes[entityTypeName].Key;
             var queryObject = new QueryObject()
             {
-                Keys = (new List<Dto> { DataAdapterUtils.GetKeyFromData(keyNames, partialEntity) }).ToArray(),
+                Keys = (new List<Dto> { DataAdapterUtils.GetKeyFromData(keyNames, partialDto) }).ToArray(),
                 Expand = expand
             };
-            var url = this.serviceUrl + "crud/" + "single/" + entitySetName + "?" + QueryUtils.RenderQueryString(queryObject);
+            var url = this.apiUrl + "/crud/" + "single/" + entitySetName + "?" + QueryUtils.RenderQueryString(queryObject);
 
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
-                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
-                return resultSingleSerialData;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataToken = JToken.Parse(json);
+                return resultSingleSerialDataToken;
             }
             return null;
         }
@@ -108,18 +159,18 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Retrive multiple entities
          */
-        public async Task<ResultSerialData> LoadManyAsync(string entityTypeName, Dto[] partialEntities, string[] expand)
+        public async Task<JToken> LoadManyAsync(string entityTypeName, Dto[] partialDtos, string[] expand)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var keyNames = this.metadata.EntityTypes[entityTypeName].Key;
-            var url = this.serviceUrl + "crud/" + "many/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = DataAdapterUtils.GetKeyFromMultipleData(keyNames, partialEntities).ToArray(), Expand = expand });
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var keyNames = this.metadataCli.EntityTypes[entityTypeName].Key;
+            var url = this.apiUrl + "/crud/" + "many/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = DataAdapterUtils.GetKeyFromMultipleData(keyNames, partialDtos).ToArray(), Expand = expand });
 
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSerialDataString = await response.Content.ReadAsStringAsync();
-                var resultSerialData = JsonConvert.DeserializeObject<ResultSerialData>(resultSerialDataString);
-                return resultSerialData;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSerialDataToken = JToken.Parse(json);
+                return resultSerialDataToken;
             }
             return null;
         }
@@ -127,18 +178,18 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Insert single entity
          */
-        public async Task<ResultSingleSerialData> PostItemAsync(string entityTypeName, Dto patchItem)
+        public async Task<JToken> PostItemAsync(string entityTypeName, Dto patchItem)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var url = this.serviceUrl + "crud/" + entitySetName;
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var url = this.apiUrl + "/crud/" + entitySetName;
 
             var jsonPatchItem = JsonConvert.SerializeObject(patchItem);
             var response = await this.client.PostAsync(url, new StringContent(jsonPatchItem, Encoding.UTF8, "application/json"));
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
-                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
-                return resultSingleSerialData;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataToken = JToken.Parse(json);
+                return resultSingleSerialDataToken;
             }
             return null;
         }
@@ -146,18 +197,18 @@ namespace Client.Modules.Utils.DAL.Common
         /**
         * Insert multiple entities
         */
-        public async Task<List<ResultSingleSerialData>> PostItemsAsync(string entityTypeName, Dto[] entities)
+        public async Task<JToken> PostItemsAsync(string entityTypeName, Dto[] entities)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var url = this.serviceUrl + "crud/" + "batch/" + entitySetName;
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var url = this.apiUrl + "/crud/" + "batch/" + entitySetName;
 
             var jsonPatchItem = JsonConvert.SerializeObject(entities);
             var response = await this.client.PostAsync(url, new StringContent(jsonPatchItem, Encoding.UTF8, "application/json"));
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataListString = await response.Content.ReadAsStringAsync();
-                var resultSingleSerialDataList = JsonConvert.DeserializeObject<List<ResultSingleSerialData>>(resultSingleSerialDataListString);
-                return resultSingleSerialDataList;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataListToken = JToken.Parse(json);
+                return resultSingleSerialDataListToken;
             }
             return null;
         }
@@ -165,19 +216,19 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Update single entity
          */
-        public async Task<ResultSingleSerialData> PutItemAsync(string entityTypeName, Dto entity)
+        public async Task<JToken> PutItemAsync(string entityTypeName, Dto entity)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var keyNames = this.metadata.EntityTypes[entityTypeName].Key;
-            var url = this.serviceUrl + "crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = (new List<Dto>() { DataAdapterUtils.GetKeyFromData(keyNames, entity) }).ToArray() });
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var keyNames = this.metadataCli.EntityTypes[entityTypeName].Key;
+            var url = this.apiUrl + "/crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = (new List<Dto>() { DataAdapterUtils.GetKeyFromData(keyNames, entity) }).ToArray() });
 
             var jsonPatchItem = JsonConvert.SerializeObject(entity);
             var response = await this.client.PutAsync(url, new StringContent(jsonPatchItem, Encoding.UTF8, "application/json"));
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
-                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
-                return resultSingleSerialData;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataToken = JToken.Parse(json);
+                return resultSingleSerialDataToken;
             }
             return null;
         }
@@ -185,11 +236,11 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Update single entity but only the changed fields
          */
-        public async Task<ResultSingleSerialData> PatchItemAsync(string entityTypeName, Dto item)
+        public async Task<JToken> PatchItemAsync(string entityTypeName, Dto item)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var keyNames = this.metadata.EntityTypes[entityTypeName].Key;
-            var url = this.serviceUrl + "crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = (new List<Dto> { DataAdapterUtils.GetKeyFromData(keyNames, (Dto)item["partialEntity"]) }).ToArray() });
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var keyNames = this.metadataCli.EntityTypes[entityTypeName].Key;
+            var url = this.apiUrl + "/crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = (new List<Dto> { DataAdapterUtils.GetKeyFromData(keyNames, (Dto)item["partialEntity"]) }).ToArray() });
 
             // Info credit: http://benfoster.io/blog/adding-patch-support-to-httpclient
             HttpRequestMessage request;
@@ -201,9 +252,9 @@ namespace Client.Modules.Utils.DAL.Common
             var response = await this.client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
-                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
-                return resultSingleSerialData;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataToken = JToken.Parse(json);
+                return resultSingleSerialDataToken;
             }
             return null;
         }
@@ -211,10 +262,10 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Update multiple entities
          */
-        public async Task<List<ResultSingleSerialData>> PatchItemsAsync(string entityTypeName, Dto[] items)
+        public async Task<JToken> PatchItemsAsync(string entityTypeName, Dto[] items)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var url = this.serviceUrl + "crud/" + "batch/" + entitySetName;
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var url = this.apiUrl + "/crud/" + "batch/" + entitySetName;
 
             // Info credit: http://benfoster.io/blog/adding-patch-support-to-httpclient
             HttpRequestMessage request;
@@ -226,9 +277,9 @@ namespace Client.Modules.Utils.DAL.Common
             var response = await this.client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataListString = await response.Content.ReadAsStringAsync();
-                var resultSingleSerialDataList = JsonConvert.DeserializeObject<List<ResultSingleSerialData>>(resultSingleSerialDataListString);
-                return resultSingleSerialDataList;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataListToken = JToken.Parse(json);
+                return resultSingleSerialDataListToken;
             }
             return null;
         }
@@ -236,18 +287,18 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Delete single entity
          */
-        public async Task<ResultSingleSerialData> DeleteItemAsync(string entityTypeName, Dto partialEntity)
+        public async Task<JToken> DeleteItemAsync(string entityTypeName, Dto partialEntity)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var keyNames = this.metadata.EntityTypes[entityTypeName].Key;
-            var url = this.serviceUrl + "crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = new List<Dto>() { DataAdapterUtils.GetKeyFromData(keyNames, partialEntity) }.ToArray() });
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var keyNames = this.metadataCli.EntityTypes[entityTypeName].Key;
+            var url = this.apiUrl + "/crud/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = new List<Dto>() { DataAdapterUtils.GetKeyFromData(keyNames, partialEntity) }.ToArray() });
 
             var response = await this.client.DeleteAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSingleSerialDataString = await response.Content.ReadAsStringAsync();
-                var resultSingleSerialData = JsonConvert.DeserializeObject<ResultSingleSerialData>(resultSingleSerialDataString);
-                return resultSingleSerialData;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSingleSerialDataToken = JToken.Parse(json);
+                return resultSingleSerialDataToken;
             }
             return null;
         }
@@ -255,18 +306,18 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Delete multiple entities
          */
-        public async Task<ResultSerialData> DeleteItemsAsync(string entityTypeName, Dto[] items)
+        public async Task<JToken> DeleteItemsAsync(string entityTypeName, Dto[] items)
         {
-            var entitySetName = this.metadata.EntityTypes[entityTypeName].EntitySetName;
-            var keyNames = this.metadata.EntityTypes[entityTypeName].Key;
-            var url = this.serviceUrl + "crud/" + "batch/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = DataAdapterUtils.GetKeyFromMultipleData(keyNames, items).ToArray() });
+            var entitySetName = this.metadataCli.EntityTypes[entityTypeName].EntitySetName;
+            var keyNames = this.metadataCli.EntityTypes[entityTypeName].Key;
+            var url = this.apiUrl + "/crud/" + "batch/" + entitySetName + "?" + QueryUtils.RenderQueryString(new QueryObject() { Keys = DataAdapterUtils.GetKeyFromMultipleData(keyNames, items).ToArray() });
 
             var response = await this.client.DeleteAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSerialDataString = await response.Content.ReadAsStringAsync();
-                var resultSerialData = JsonConvert.DeserializeObject<ResultSerialData>(resultSerialDataString);
-                return resultSerialData;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSerialDataToken = JToken.Parse(json);
+                return resultSerialDataToken;
             }
             return null;
 
@@ -275,14 +326,14 @@ namespace Client.Modules.Utils.DAL.Common
         /**
          * Query entity collection
          */
-        public async Task<ResultSerialResponse> queryAllNextAsync(string url)
+        public async Task<JToken> QueryAllNextAsync(string url)
         {
             var response = await this.client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var resultSerialResponseString = await response.Content.ReadAsStringAsync();
-                var resultSerialResponse = JsonConvert.DeserializeObject<ResultSerialResponse>(resultSerialResponseString);
-                return resultSerialResponse;
+                var json = await response.Content.ReadAsStringAsync();
+                var resultSerialResponseToken = JToken.Parse(json);
+                return resultSerialResponseToken;
             }
             return null;
         }

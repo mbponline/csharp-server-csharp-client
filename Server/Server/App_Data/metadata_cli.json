@@ -1,0 +1,1226 @@
+{
+  "dialect": "TS",
+  "version": "v0.0.1",
+  "description": "Sakila client metadata",
+  "max": 256,
+  "multiplicity": {
+    "multi": "multi",
+    "single": "single"
+  },
+  "entityTypes": {
+    "Actor": {
+      "entitySetName": "Actors",
+      "key": [
+        "ActorId"
+      ],
+      "properties": {
+        "ActorId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FirstName": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastName": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "ActorId"
+      ],
+      "navigationProperties": {
+        "FilmActors": {
+          "entityTypeName": "FilmActor",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "ActorId"
+          ],
+          "keyRemote": [
+            "ActorId"
+          ]
+        }
+      }
+    },
+    "Address": {
+      "entitySetName": "Addresses",
+      "key": [
+        "AddressId"
+      ],
+      "properties": {
+        "AddressId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Address1": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 50
+        },
+        "Address2": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50
+        },
+        "District": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 20
+        },
+        "CityId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "PostalCode": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 10
+        },
+        "Phone": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 20
+        },
+        "Location": {
+          "type": "any",
+          "nullable": false,
+          "default": "ST_GeomFromText('POINT(0 0)')",
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "AddressId"
+      ],
+      "navigationProperties": {
+        "City": {
+          "entityTypeName": "City",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CityId"
+          ],
+          "keyRemote": [
+            "CityId"
+          ]
+        },
+        "Customers": {
+          "entityTypeName": "Customer",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Staffs": {
+          "entityTypeName": "Staff",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Stores": {
+          "entityTypeName": "Store",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        }
+      }
+    },
+    "Category": {
+      "entitySetName": "Categories",
+      "key": [
+        "CategoryId"
+      ],
+      "properties": {
+        "CategoryId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 25
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CategoryId"
+      ],
+      "navigationProperties": {
+        "FilmCategories": {
+          "entityTypeName": "FilmCategory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CategoryId"
+          ],
+          "keyRemote": [
+            "CategoryId"
+          ]
+        }
+      }
+    },
+    "City": {
+      "entitySetName": "Cities",
+      "key": [
+        "CityId"
+      ],
+      "properties": {
+        "CityId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 50
+        },
+        "CountryId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CityId"
+      ],
+      "navigationProperties": {
+        "Addresses": {
+          "entityTypeName": "Address",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CityId"
+          ],
+          "keyRemote": [
+            "CityId"
+          ]
+        },
+        "Country": {
+          "entityTypeName": "Country",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CountryId"
+          ],
+          "keyRemote": [
+            "CountryId"
+          ]
+        }
+      }
+    },
+    "Country": {
+      "entitySetName": "Countries",
+      "key": [
+        "CountryId"
+      ],
+      "properties": {
+        "CountryId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 50
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CountryId"
+      ],
+      "navigationProperties": {
+        "Cities": {
+          "entityTypeName": "City",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CountryId"
+          ],
+          "keyRemote": [
+            "CountryId"
+          ]
+        }
+      }
+    },
+    "Customer": {
+      "entitySetName": "Customers",
+      "key": [
+        "CustomerId"
+      ],
+      "properties": {
+        "CustomerId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "StoreId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FirstName": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastName": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "Email": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50
+        },
+        "AddressId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": false,
+          "maxLength": null
+        },
+        "CreateDate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "CustomerId"
+      ],
+      "navigationProperties": {
+        "Store": {
+          "entityTypeName": "Store",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Address": {
+          "entityTypeName": "Address",
+          "multiplicity": "single",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Payments": {
+          "entityTypeName": "Payment",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        },
+        "Rentals": {
+          "entityTypeName": "Rental",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        }
+      }
+    },
+    "Film": {
+      "entitySetName": "Films",
+      "key": [
+        "FilmId"
+      ],
+      "properties": {
+        "FilmId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Title": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 255
+        },
+        "Description": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 65535
+        },
+        "ReleaseYear": {
+          "type": "number",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "LanguageId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "OriginalLanguageId": {
+          "type": "number",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "RentalDuration": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "RentalRate": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Length": {
+          "type": "number",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "ReplacementCost": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Rating": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 5
+        },
+        "SpecialFeatures": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 54
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "FilmId"
+      ],
+      "navigationProperties": {
+        "Language": {
+          "entityTypeName": "Language",
+          "multiplicity": "single",
+          "keyLocal": [
+            "LanguageId"
+          ],
+          "keyRemote": [
+            "LanguageId"
+          ]
+        },
+        "Language1": {
+          "entityTypeName": "Language",
+          "multiplicity": "single",
+          "keyLocal": [
+            "OriginalLanguageId"
+          ],
+          "keyRemote": [
+            "LanguageId"
+          ]
+        },
+        "FilmActors": {
+          "entityTypeName": "FilmActor",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "FilmCategories": {
+          "entityTypeName": "FilmCategory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "Inventories": {
+          "entityTypeName": "Inventory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        }
+      }
+    },
+    "FilmActor": {
+      "entitySetName": "FilmActors",
+      "key": [
+        "ActorId",
+        "FilmId"
+      ],
+      "properties": {
+        "ActorId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FilmId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [],
+      "navigationProperties": {
+        "Actor": {
+          "entityTypeName": "Actor",
+          "multiplicity": "single",
+          "keyLocal": [
+            "ActorId"
+          ],
+          "keyRemote": [
+            "ActorId"
+          ]
+        },
+        "Film": {
+          "entityTypeName": "Film",
+          "multiplicity": "single",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        }
+      }
+    },
+    "FilmCategory": {
+      "entitySetName": "FilmCategories",
+      "key": [
+        "FilmId",
+        "CategoryId"
+      ],
+      "properties": {
+        "FilmId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "CategoryId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [],
+      "navigationProperties": {
+        "Film": {
+          "entityTypeName": "Film",
+          "multiplicity": "single",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "Category": {
+          "entityTypeName": "Category",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CategoryId"
+          ],
+          "keyRemote": [
+            "CategoryId"
+          ]
+        }
+      }
+    },
+    "FilmText": {
+      "entitySetName": "FilmTexts",
+      "key": [
+        "FilmId"
+      ],
+      "properties": {
+        "FilmId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Title": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 255
+        },
+        "Description": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 65535
+        }
+      },
+      "calculatedProperties": [],
+      "navigationProperties": {}
+    },
+    "Inventory": {
+      "entitySetName": "Inventories",
+      "key": [
+        "InventoryId"
+      ],
+      "properties": {
+        "InventoryId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FilmId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "StoreId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "InventoryId"
+      ],
+      "navigationProperties": {
+        "Film": {
+          "entityTypeName": "Film",
+          "multiplicity": "single",
+          "keyLocal": [
+            "FilmId"
+          ],
+          "keyRemote": [
+            "FilmId"
+          ]
+        },
+        "Store": {
+          "entityTypeName": "Store",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Rentals": {
+          "entityTypeName": "Rental",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "InventoryId"
+          ],
+          "keyRemote": [
+            "InventoryId"
+          ]
+        }
+      }
+    },
+    "Language": {
+      "entitySetName": "Languages",
+      "key": [
+        "LanguageId"
+      ],
+      "properties": {
+        "LanguageId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Name": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 20
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "LanguageId"
+      ],
+      "navigationProperties": {
+        "Films": {
+          "entityTypeName": "Film",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "LanguageId"
+          ],
+          "keyRemote": [
+            "LanguageId"
+          ]
+        },
+        "Films1": {
+          "entityTypeName": "Film",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "LanguageId"
+          ],
+          "keyRemote": [
+            "OriginalLanguageId"
+          ]
+        }
+      }
+    },
+    "Payment": {
+      "entitySetName": "Payments",
+      "key": [
+        "PaymentId"
+      ],
+      "properties": {
+        "PaymentId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "CustomerId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "StaffId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "RentalId": {
+          "type": "number",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "Amount": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "PaymentDate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "PaymentId"
+      ],
+      "navigationProperties": {
+        "Customer": {
+          "entityTypeName": "Customer",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        },
+        "Staff": {
+          "entityTypeName": "Staff",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Rental": {
+          "entityTypeName": "Rental",
+          "multiplicity": "single",
+          "keyLocal": [
+            "RentalId"
+          ],
+          "keyRemote": [
+            "RentalId"
+          ]
+        }
+      }
+    },
+    "Rental": {
+      "entitySetName": "Rentals",
+      "key": [
+        "RentalId"
+      ],
+      "properties": {
+        "RentalId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "RentalDate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        },
+        "InventoryId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "CustomerId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "ReturnDate": {
+          "type": "Date",
+          "nullable": true,
+          "default": null,
+          "maxLength": null
+        },
+        "StaffId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "RentalId"
+      ],
+      "navigationProperties": {
+        "Payments": {
+          "entityTypeName": "Payment",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "RentalId"
+          ],
+          "keyRemote": [
+            "RentalId"
+          ]
+        },
+        "Inventory": {
+          "entityTypeName": "Inventory",
+          "multiplicity": "single",
+          "keyLocal": [
+            "InventoryId"
+          ],
+          "keyRemote": [
+            "InventoryId"
+          ]
+        },
+        "Customer": {
+          "entityTypeName": "Customer",
+          "multiplicity": "single",
+          "keyLocal": [
+            "CustomerId"
+          ],
+          "keyRemote": [
+            "CustomerId"
+          ]
+        },
+        "Staff": {
+          "entityTypeName": "Staff",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        }
+      }
+    },
+    "Staff": {
+      "entitySetName": "Staffs",
+      "key": [
+        "StaffId"
+      ],
+      "properties": {
+        "StaffId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "FirstName": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "LastName": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 45
+        },
+        "AddressId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Picture": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 65535
+        },
+        "Email": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50
+        },
+        "StoreId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "Active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": false,
+          "maxLength": null
+        },
+        "Username": {
+          "type": "string",
+          "nullable": false,
+          "default": "",
+          "maxLength": 16
+        },
+        "Password": {
+          "type": "string",
+          "nullable": true,
+          "default": null,
+          "maxLength": 40
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "StaffId"
+      ],
+      "navigationProperties": {
+        "Payments": {
+          "entityTypeName": "Payment",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Rentals": {
+          "entityTypeName": "Rental",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Address": {
+          "entityTypeName": "Address",
+          "multiplicity": "single",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        },
+        "Store": {
+          "entityTypeName": "Store",
+          "multiplicity": "single",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Stores": {
+          "entityTypeName": "Store",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StaffId"
+          ],
+          "keyRemote": [
+            "ManagerStaffId"
+          ]
+        }
+      }
+    },
+    "Store": {
+      "entitySetName": "Stores",
+      "key": [
+        "StoreId"
+      ],
+      "properties": {
+        "StoreId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "ManagerStaffId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "AddressId": {
+          "type": "number",
+          "nullable": false,
+          "default": 0,
+          "maxLength": null
+        },
+        "LastUpdate": {
+          "type": "Date",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null
+        }
+      },
+      "calculatedProperties": [
+        "StoreId"
+      ],
+      "navigationProperties": {
+        "Customers": {
+          "entityTypeName": "Customer",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Inventories": {
+          "entityTypeName": "Inventory",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Staffs": {
+          "entityTypeName": "Staff",
+          "multiplicity": "multi",
+          "keyLocal": [
+            "StoreId"
+          ],
+          "keyRemote": [
+            "StoreId"
+          ]
+        },
+        "Staff": {
+          "entityTypeName": "Staff",
+          "multiplicity": "single",
+          "keyLocal": [
+            "ManagerStaffId"
+          ],
+          "keyRemote": [
+            "StaffId"
+          ]
+        },
+        "Address": {
+          "entityTypeName": "Address",
+          "multiplicity": "single",
+          "keyLocal": [
+            "AddressId"
+          ],
+          "keyRemote": [
+            "AddressId"
+          ]
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "name": "GetFilmsWithActors",
+      "parameters": [
+        {
+          "name": "releaseYear",
+          "type": "number",
+          "nullable": false
+        }
+      ],
+      "returnType": {
+        "type": "Film",
+        "isEntity": true,
+        "isCollection": true,
+        "nullable": false
+      }
+    }
+  ],
+  "actions": [
+    {
+      "name": "TestAction",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "number",
+          "nullable": false
+        }
+      ],
+      "returnType": null
+    }
+  ]
+}

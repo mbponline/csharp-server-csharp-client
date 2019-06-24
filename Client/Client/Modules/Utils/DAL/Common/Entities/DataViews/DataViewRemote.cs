@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MetadataCli = Client.Modules.Utils.DAL.Common.MetadataCli;
 
 namespace Client.Modules.Utils.DAL.Common
 {
@@ -9,34 +10,41 @@ namespace Client.Modules.Utils.DAL.Common
     public class DataViewRemote<T>
         where T : class, IDerivedEntity
     {
-        public DataViewRemote(DataAdapter dataAdapter, DataContext dataContext, Metadata metadata)
+        public DataViewRemote(DataAdapter dataAdapter, DataContext dataContext, MetadataCli.Metadata metadataCli)
         {
             this.entityTypeName = typeof(T).Name;
             this.dataAdapter = dataAdapter;
             this.dataContext = dataContext;
-            this.metadata = metadata;
+            this.metadataCli = metadataCli;
         }
 
         private readonly string entityTypeName;
         private readonly DataAdapter dataAdapter;
         private readonly DataContext dataContext;
-        private readonly Metadata metadata;
+        private readonly MetadataCli.Metadata metadataCli;
 
         public async Task<QueryResult<T>> GetItemsAsync(QueryObject queryObject = null)
         {
             var dataSet = new List<T>();
             var totalCount = 0;
             //BusyIndicator.instance.start();
-            var resultSerialResponse = await this.dataAdapter.QueryAllAsync(this.entityTypeName, queryObject);
+            var resultSerialResponseToken = await this.dataAdapter.QueryAllAsync(this.entityTypeName, queryObject);
+            var resultSerialResponse = resultSerialResponseToken.ToObject<ResultSerialResponse>();
+
             var tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data).Select(it => (T)it);
             dataSet.AddRange(tempDataSet);
+            totalCount = resultSerialResponse.Data.TotalCount;
+
             var moreData = resultSerialResponse != null && !string.IsNullOrEmpty(resultSerialResponse.NextLink);
             while (moreData)
             {
-                resultSerialResponse = await this.dataAdapter.queryAllNextAsync(resultSerialResponse.NextLink);
+                resultSerialResponseToken = await this.dataAdapter.QueryAllNextAsync(resultSerialResponse.NextLink);
+                resultSerialResponse = resultSerialResponseToken.ToObject<ResultSerialResponse>();
+
                 tempDataSet = this.dataContext.AttachEntities(resultSerialResponse.Data).Select(it => (T)it);
                 dataSet.AddRange(tempDataSet);
                 totalCount = resultSerialResponse.Data.TotalCount;
+
                 moreData = resultSerialResponse != null && !string.IsNullOrEmpty(resultSerialResponse.NextLink);
             }
             //BusyIndicator.instance.stop();
@@ -52,7 +60,9 @@ namespace Client.Modules.Utils.DAL.Common
         public async Task<T> GetSingleItemAsync(Dto partialDto, string[] expand = null)
         {
             //BusyIndicator.instance.start();
-            var resultSingleSerialData = await this.dataAdapter.LoadOneAsync(this.entityTypeName, partialDto, expand);
+            var resultSingleSerialDataToken = await this.dataAdapter.LoadOneAsync(this.entityTypeName, partialDto, expand);
+            var resultSingleSerialData = resultSingleSerialDataToken.ToObject<ResultSingleSerialData>();
+
             //BusyIndicator.instance.stop();
             var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
             return (T)derivedEntity;
@@ -61,7 +71,9 @@ namespace Client.Modules.Utils.DAL.Common
         public async Task<IEnumerable<T>> GetMultipleItemsAsync(Dto[] partialDtos, string[] expand = null)
         {
             //BusyIndicator.instance.start();
-            var resultSerialData = await this.dataAdapter.LoadManyAsync(this.entityTypeName, partialDtos, expand);
+            var resultSerialDataToken = await this.dataAdapter.LoadManyAsync(this.entityTypeName, partialDtos, expand);
+            var resultSerialData = resultSerialDataToken.ToObject<ResultSerialData>();
+
             //BusyIndicator.instance.stop();
             var derivedEntityList = this.dataContext.AttachEntities(resultSerialData).Select(it => (T)it);
             return derivedEntityList;
@@ -69,11 +81,12 @@ namespace Client.Modules.Utils.DAL.Common
 
         public async Task<T> InsertItemAsync(Dto dto)
         {
-            var keyNames = this.metadata.EntityTypes[this.entityTypeName].Key;
+            var keyNames = this.metadataCli.EntityTypes[this.entityTypeName].Key;
             var dataOriginal = this.dataContext.CreateItemDetached<T>(this.entityTypeName);
             var patchItem = this.GetPatchItemAsync(keyNames, dto, dataOriginal.entity.dto);
             //BusyIndicator.instance.start();
-            var resultSingleSerialData = await this.dataAdapter.PostItemAsync(this.entityTypeName, dto);
+            var resultSingleSerialDataToken = await this.dataAdapter.PostItemAsync(this.entityTypeName, dto);
+            var resultSingleSerialData = resultSingleSerialDataToken.ToObject<ResultSingleSerialData>();
             //BusyIndicator.instance.stop();
             var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
             return (T)derivedEntity;
@@ -88,7 +101,8 @@ namespace Client.Modules.Utils.DAL.Common
 
             var derivedEntityList = new List<T>();
             //BusyIndicator.instance.start();
-            var resultSingleSerialDataList = await this.dataAdapter.PostItemsAsync(this.entityTypeName, dtos);
+            var resultSingleSerialDataListToken = await this.dataAdapter.PostItemsAsync(this.entityTypeName, dtos);
+            var resultSingleSerialDataList = resultSingleSerialDataListToken.ToObject<List<ResultSingleSerialData>>();
             //BusyIndicator.instance.stop();
             foreach (var resultSingleSerialData in resultSingleSerialDataList)
             {
@@ -104,7 +118,8 @@ namespace Client.Modules.Utils.DAL.Common
             // aplica modificarile datelor aflate in DataContext
             DalUtils.Extend(dataOriginal.entity.dto, partialDto);
             //BusyIndicator.instance.start();
-            var resultSingleSerialData = await this.dataAdapter.PutItemAsync(this.entityTypeName, dataOriginal.entity.dto);
+            var resultSingleSerialDataToken = await this.dataAdapter.PutItemAsync(this.entityTypeName, dataOriginal.entity.dto);
+            var resultSingleSerialData = resultSingleSerialDataToken.ToObject<ResultSingleSerialData>();
             //BusyIndicator.instance.stop();
             var derivedEntity = this.dataContext.AttachSingleEntitiy(resultSingleSerialData);
             return (T)derivedEntity;
@@ -112,7 +127,7 @@ namespace Client.Modules.Utils.DAL.Common
 
         public async Task<IEnumerable<T>> UpdateItemsAsync(Dto[] partialDtos)
         {
-            var keyNames = this.metadata.EntityTypes[this.entityTypeName].Key;
+            var keyNames = this.metadataCli.EntityTypes[this.entityTypeName].Key;
             var dtos = new List<Dto>();
             foreach (var partialDto in partialDtos)
             {
@@ -128,7 +143,8 @@ namespace Client.Modules.Utils.DAL.Common
 
             var derivedEntityList = new List<T>();
             //BusyIndicator.instance.start();
-            var resultSingleSerialDataList = await this.dataAdapter.PatchItemsAsync(this.entityTypeName, dtos.ToArray());
+            var resultSingleSerialDataListToken = await this.dataAdapter.PatchItemsAsync(this.entityTypeName, dtos.ToArray());
+            var resultSingleSerialDataList = resultSingleSerialDataListToken.ToObject<List<ResultSingleSerialData>>();
             //BusyIndicator.instance.stop();
             foreach (var dataDto in resultSingleSerialDataList)
             {

@@ -12,38 +12,31 @@ using Client.Modules.Utils.DAL.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MetadataCli = Client.Modules.Utils.DAL.Common.MetadataCli;
 
 namespace Client.Modules.Utils.DAL
 {
     public class DataService : DataServiceBase<LocalViews, RemoteViews, ServiceFunctions, ServiceActions>
     {
-        public DataService(Metadata metadata, string baseUrl, string serviceUrl) : base(metadata, baseUrl, serviceUrl)
+        public DataService(string baseUrl, string apiUrl, MetadataCli.Metadata metadataCli) : base(baseUrl, apiUrl, metadataCli)
         {
-            this.From = new ServiceLocation<LocalViews, RemoteViews>() { Local = new LocalViews(this.DataContext), Remote = new RemoteViews(this.DataAdapter, this.DataContext, metadata) };
-            this.Operation = new ServiceOperation<ServiceFunctions, ServiceActions>() { Function = new ServiceFunctions(this.DataAdapter, this.DataContext, metadata), Action = new ServiceActions(this.DataAdapter, this.DataContext, metadata) };
+            this.From = new ServiceLocation<LocalViews, RemoteViews>() { Local = new LocalViews(this.DataContext), Remote = new RemoteViews(this.DataAdapter, this.DataContext, metadataCli) };
+            this.Operation = new ServiceOperation<ServiceFunctions, ServiceActions>() { Function = new ServiceFunctions(this.DataAdapter, this.DataContext), Action = new ServiceActions(this.DataAdapter, this.DataContext) };
         }
-
-        public static async Task<DataService> CreateInstanceAsync(string baseUrl, string serviceUrl)
-        {
-            var metadata = await DataService.GetMetadataAsync(baseUrl, serviceUrl);
-            metadata.Namespace = "Client.Modules.Utils.DAL";
-            return new DataService(metadata, baseUrl, serviceUrl);
-        }
-
     }
 
     public class ServiceFunctions : OperationsProvider
     {
-        public ServiceFunctions(DataAdapter dataAdapter, DataContext dataContext, Metadata metadata) : base(dataAdapter, dataContext, metadata) { }
+        public ServiceFunctions(DataAdapter dataAdapter, DataContext dataContext) : base(dataAdapter, dataContext) { }
         
-        public async Task<QueryResult<Film>> GetFilmsWithActors(int releaseYear, QueryObject queryObject = null) { return await this.GetEntitiesAsync<Film>("GetFilmsWithActors", new Dictionary<string, object>() { { "int", releaseYear } }, queryObject); }
+        public async Task<QueryResult<Film>> GetFilmsWithActors(int releaseYear, QueryObject queryObject = null) { return await this.GetEntitiesAsync<Film>("GetFilmsWithActors", new Dictionary<string, object>() { { "releaseYear", releaseYear } }, queryObject, "Film"); }
     }
 
     public class ServiceActions : OperationsProvider
     {
-        public ServiceActions(DataAdapter dataAdapter, DataContext dataContext, Metadata metadata) : base(dataAdapter, dataContext, metadata) { }
+        public ServiceActions(DataAdapter dataAdapter, DataContext dataContext) : base(dataAdapter, dataContext) { }
         
-        public async Task TestAction(int param1) { await this.PostOperationAsync<object>("TestAction", new Dictionary<string, object>() { { "int", param1 } }); }
+        public async Task TestAction(int param1) { await this.GetValuePostOperationAsync<object>("TestAction", new Dictionary<string, object>() { { "param1", param1 } }); }
     }
 
     public class LocalViews : PropertyList
@@ -70,7 +63,7 @@ namespace Client.Modules.Utils.DAL
 
     public class RemoteViews : PropertyList
     {
-        public RemoteViews(DataAdapter dataAdapter, DataContext dataContext, Metadata metadata) : base(dataAdapter, dataContext, metadata) { }
+        public RemoteViews(DataAdapter dataAdapter, DataContext dataContext, MetadataCli.Metadata metadataCli) : base(dataAdapter, dataContext, metadataCli) { }
         
         public DataViewRemote<Actor> Actors { get { return this.GetPropertyValue<DataViewRemote<Actor>>(); } }
         public DataViewRemote<Address> Addresses { get { return this.GetPropertyValue<DataViewRemote<Address>>(); } }
@@ -100,7 +93,7 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short ActorId { get { return (short)(long)this.entity.dto["ActorId"]; } set { this.entity.dto["ActorId"] = value; } }
+        public int ActorId { get { return (int)this.entity.dto["ActorId"]; } set { this.entity.dto["ActorId"] = value; } }
         public string FirstName { get { return (string)this.entity.dto["FirstName"]; } set { this.entity.dto["FirstName"] = value; } }
         public string LastName { get { return (string)this.entity.dto["LastName"]; } set { this.entity.dto["LastName"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
@@ -120,11 +113,11 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short AddressId { get { return (short)(long)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
+        public int AddressId { get { return (int)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
         public string Address1 { get { return (string)this.entity.dto["Address1"]; } set { this.entity.dto["Address1"] = value; } }
         public string Address2 { get { return (string)this.entity.dto["Address2"]; } set { this.entity.dto["Address2"] = value; } }
         public string District { get { return (string)this.entity.dto["District"]; } set { this.entity.dto["District"] = value; } }
-        public short CityId { get { return (short)(long)this.entity.dto["CityId"]; } set { this.entity.dto["CityId"] = value; } }
+        public int CityId { get { return (int)this.entity.dto["CityId"]; } set { this.entity.dto["CityId"] = value; } }
         public string PostalCode { get { return (string)this.entity.dto["PostalCode"]; } set { this.entity.dto["PostalCode"] = value; } }
         public string Phone { get { return (string)this.entity.dto["Phone"]; } set { this.entity.dto["Phone"] = value; } }
         public object Location { get { return (object)this.entity.dto["Location"]; } set { this.entity.dto["Location"] = value; } }
@@ -151,7 +144,7 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public sbyte CategoryId { get { return (sbyte)(long)this.entity.dto["CategoryId"]; } set { this.entity.dto["CategoryId"] = value; } }
+        public int CategoryId { get { return (int)this.entity.dto["CategoryId"]; } set { this.entity.dto["CategoryId"] = value; } }
         public string Name { get { return (string)this.entity.dto["Name"]; } set { this.entity.dto["Name"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
@@ -170,9 +163,9 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short CityId { get { return (short)(long)this.entity.dto["CityId"]; } set { this.entity.dto["CityId"] = value; } }
+        public int CityId { get { return (int)this.entity.dto["CityId"]; } set { this.entity.dto["CityId"] = value; } }
         public string Name { get { return (string)this.entity.dto["Name"]; } set { this.entity.dto["Name"] = value; } }
-        public short CountryId { get { return (short)(long)this.entity.dto["CountryId"]; } set { this.entity.dto["CountryId"] = value; } }
+        public int CountryId { get { return (int)this.entity.dto["CountryId"]; } set { this.entity.dto["CountryId"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
         [JsonIgnore]
@@ -192,7 +185,7 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short CountryId { get { return (short)(long)this.entity.dto["CountryId"]; } set { this.entity.dto["CountryId"] = value; } }
+        public int CountryId { get { return (int)this.entity.dto["CountryId"]; } set { this.entity.dto["CountryId"] = value; } }
         public string Name { get { return (string)this.entity.dto["Name"]; } set { this.entity.dto["Name"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
@@ -211,12 +204,12 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short CustomerId { get { return (short)(long)this.entity.dto["CustomerId"]; } set { this.entity.dto["CustomerId"] = value; } }
-        public sbyte StoreId { get { return (sbyte)(long)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
+        public int CustomerId { get { return (int)this.entity.dto["CustomerId"]; } set { this.entity.dto["CustomerId"] = value; } }
+        public int StoreId { get { return (int)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
         public string FirstName { get { return (string)this.entity.dto["FirstName"]; } set { this.entity.dto["FirstName"] = value; } }
         public string LastName { get { return (string)this.entity.dto["LastName"]; } set { this.entity.dto["LastName"] = value; } }
         public string Email { get { return (string)this.entity.dto["Email"]; } set { this.entity.dto["Email"] = value; } }
-        public short AddressId { get { return (short)(long)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
+        public int AddressId { get { return (int)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
         public bool Active { get { return (bool)this.entity.dto["Active"]; } set { this.entity.dto["Active"] = value; } }
         public DateTime CreateDate { get { return (DateTime)this.entity.dto["CreateDate"]; } set { this.entity.dto["CreateDate"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
@@ -242,15 +235,15 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short FilmId { get { return (short)(long)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
+        public int FilmId { get { return (int)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
         public string Title { get { return (string)this.entity.dto["Title"]; } set { this.entity.dto["Title"] = value; } }
         public string Description { get { return (string)this.entity.dto["Description"]; } set { this.entity.dto["Description"] = value; } }
-        public ushort? ReleaseYear { get { return (ushort?)(long)this.entity.dto["ReleaseYear"]; } set { this.entity.dto["ReleaseYear"] = value; } }
-        public sbyte LanguageId { get { return (sbyte)(long)this.entity.dto["LanguageId"]; } set { this.entity.dto["LanguageId"] = value; } }
-        public sbyte? OriginalLanguageId { get { return (sbyte?)(long)this.entity.dto["OriginalLanguageId"]; } set { this.entity.dto["OriginalLanguageId"] = value; } }
-        public sbyte RentalDuration { get { return (sbyte)(long)this.entity.dto["RentalDuration"]; } set { this.entity.dto["RentalDuration"] = value; } }
+        public int? ReleaseYear { get { return (int?)this.entity.dto["ReleaseYear"]; } set { this.entity.dto["ReleaseYear"] = value; } }
+        public int LanguageId { get { return (int)this.entity.dto["LanguageId"]; } set { this.entity.dto["LanguageId"] = value; } }
+        public int? OriginalLanguageId { get { return (int?)this.entity.dto["OriginalLanguageId"]; } set { this.entity.dto["OriginalLanguageId"] = value; } }
+        public int RentalDuration { get { return (int)this.entity.dto["RentalDuration"]; } set { this.entity.dto["RentalDuration"] = value; } }
         public float RentalRate { get { return (float)this.entity.dto["RentalRate"]; } set { this.entity.dto["RentalRate"] = value; } }
-        public short? Length { get { return (short?)(long)this.entity.dto["Length"]; } set { this.entity.dto["Length"] = value; } }
+        public int? Length { get { return (int?)this.entity.dto["Length"]; } set { this.entity.dto["Length"] = value; } }
         public float ReplacementCost { get { return (float)this.entity.dto["ReplacementCost"]; } set { this.entity.dto["ReplacementCost"] = value; } }
         public string Rating { get { return (string)this.entity.dto["Rating"]; } set { this.entity.dto["Rating"] = value; } }
         public string SpecialFeatures { get { return (string)this.entity.dto["SpecialFeatures"]; } set { this.entity.dto["SpecialFeatures"] = value; } }
@@ -279,8 +272,8 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short ActorId { get { return (short)(long)this.entity.dto["ActorId"]; } set { this.entity.dto["ActorId"] = value; } }
-        public short FilmId { get { return (short)(long)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
+        public int ActorId { get { return (int)this.entity.dto["ActorId"]; } set { this.entity.dto["ActorId"] = value; } }
+        public int FilmId { get { return (int)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
         [JsonIgnore]
@@ -300,8 +293,8 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short FilmId { get { return (short)(long)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
-        public sbyte CategoryId { get { return (sbyte)(long)this.entity.dto["CategoryId"]; } set { this.entity.dto["CategoryId"] = value; } }
+        public int FilmId { get { return (int)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
+        public int CategoryId { get { return (int)this.entity.dto["CategoryId"]; } set { this.entity.dto["CategoryId"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
         [JsonIgnore]
@@ -321,7 +314,7 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short FilmId { get { return (short)(long)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
+        public int FilmId { get { return (int)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
         public string Title { get { return (string)this.entity.dto["Title"]; } set { this.entity.dto["Title"] = value; } }
         public string Description { get { return (string)this.entity.dto["Description"]; } set { this.entity.dto["Description"] = value; } }
         
@@ -338,9 +331,9 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public int InventoryId { get { return (int)(long)this.entity.dto["InventoryId"]; } set { this.entity.dto["InventoryId"] = value; } }
-        public short FilmId { get { return (short)(long)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
-        public sbyte StoreId { get { return (sbyte)(long)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
+        public int InventoryId { get { return (int)this.entity.dto["InventoryId"]; } set { this.entity.dto["InventoryId"] = value; } }
+        public int FilmId { get { return (int)this.entity.dto["FilmId"]; } set { this.entity.dto["FilmId"] = value; } }
+        public int StoreId { get { return (int)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
         [JsonIgnore]
@@ -362,7 +355,7 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public sbyte LanguageId { get { return (sbyte)(long)this.entity.dto["LanguageId"]; } set { this.entity.dto["LanguageId"] = value; } }
+        public int LanguageId { get { return (int)this.entity.dto["LanguageId"]; } set { this.entity.dto["LanguageId"] = value; } }
         public string Name { get { return (string)this.entity.dto["Name"]; } set { this.entity.dto["Name"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
@@ -383,10 +376,10 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public short PaymentId { get { return (short)(long)this.entity.dto["PaymentId"]; } set { this.entity.dto["PaymentId"] = value; } }
-        public short CustomerId { get { return (short)(long)this.entity.dto["CustomerId"]; } set { this.entity.dto["CustomerId"] = value; } }
-        public sbyte StaffId { get { return (sbyte)(long)this.entity.dto["StaffId"]; } set { this.entity.dto["StaffId"] = value; } }
-        public int? RentalId { get { return (int?)(long)this.entity.dto["RentalId"]; } set { this.entity.dto["RentalId"] = value; } }
+        public int PaymentId { get { return (int)this.entity.dto["PaymentId"]; } set { this.entity.dto["PaymentId"] = value; } }
+        public int CustomerId { get { return (int)this.entity.dto["CustomerId"]; } set { this.entity.dto["CustomerId"] = value; } }
+        public int StaffId { get { return (int)this.entity.dto["StaffId"]; } set { this.entity.dto["StaffId"] = value; } }
+        public int? RentalId { get { return (int?)this.entity.dto["RentalId"]; } set { this.entity.dto["RentalId"] = value; } }
         public float Amount { get { return (float)this.entity.dto["Amount"]; } set { this.entity.dto["Amount"] = value; } }
         public DateTime PaymentDate { get { return (DateTime)this.entity.dto["PaymentDate"]; } set { this.entity.dto["PaymentDate"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
@@ -410,12 +403,12 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public int RentalId { get { return (int)(long)this.entity.dto["RentalId"]; } set { this.entity.dto["RentalId"] = value; } }
+        public int RentalId { get { return (int)this.entity.dto["RentalId"]; } set { this.entity.dto["RentalId"] = value; } }
         public DateTime RentalDate { get { return (DateTime)this.entity.dto["RentalDate"]; } set { this.entity.dto["RentalDate"] = value; } }
-        public int InventoryId { get { return (int)(long)this.entity.dto["InventoryId"]; } set { this.entity.dto["InventoryId"] = value; } }
-        public short CustomerId { get { return (short)(long)this.entity.dto["CustomerId"]; } set { this.entity.dto["CustomerId"] = value; } }
+        public int InventoryId { get { return (int)this.entity.dto["InventoryId"]; } set { this.entity.dto["InventoryId"] = value; } }
+        public int CustomerId { get { return (int)this.entity.dto["CustomerId"]; } set { this.entity.dto["CustomerId"] = value; } }
         public DateTime? ReturnDate { get { return (DateTime?)this.entity.dto["ReturnDate"]; } set { this.entity.dto["ReturnDate"] = value; } }
-        public sbyte StaffId { get { return (sbyte)(long)this.entity.dto["StaffId"]; } set { this.entity.dto["StaffId"] = value; } }
+        public int StaffId { get { return (int)this.entity.dto["StaffId"]; } set { this.entity.dto["StaffId"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
         [JsonIgnore]
@@ -439,13 +432,13 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public sbyte StaffId { get { return (sbyte)(long)this.entity.dto["StaffId"]; } set { this.entity.dto["StaffId"] = value; } }
+        public int StaffId { get { return (int)this.entity.dto["StaffId"]; } set { this.entity.dto["StaffId"] = value; } }
         public string FirstName { get { return (string)this.entity.dto["FirstName"]; } set { this.entity.dto["FirstName"] = value; } }
         public string LastName { get { return (string)this.entity.dto["LastName"]; } set { this.entity.dto["LastName"] = value; } }
-        public short AddressId { get { return (short)(long)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
-        public byte[] Picture { get { return (byte[])this.entity.dto["Picture"]; } set { this.entity.dto["Picture"] = value; } }
+        public int AddressId { get { return (int)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
+        public string Picture { get { return (string)this.entity.dto["Picture"]; } set { this.entity.dto["Picture"] = value; } }
         public string Email { get { return (string)this.entity.dto["Email"]; } set { this.entity.dto["Email"] = value; } }
-        public sbyte StoreId { get { return (sbyte)(long)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
+        public int StoreId { get { return (int)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
         public bool Active { get { return (bool)this.entity.dto["Active"]; } set { this.entity.dto["Active"] = value; } }
         public string Username { get { return (string)this.entity.dto["Username"]; } set { this.entity.dto["Username"] = value; } }
         public string Password { get { return (string)this.entity.dto["Password"]; } set { this.entity.dto["Password"] = value; } }
@@ -474,9 +467,9 @@ namespace Client.Modules.Utils.DAL
 
         public Entity entity { get; private set; }
         
-        public sbyte StoreId { get { return (sbyte)(long)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
-        public sbyte ManagerStaffId { get { return (sbyte)(long)this.entity.dto["ManagerStaffId"]; } set { this.entity.dto["ManagerStaffId"] = value; } }
-        public short AddressId { get { return (short)(long)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
+        public int StoreId { get { return (int)this.entity.dto["StoreId"]; } set { this.entity.dto["StoreId"] = value; } }
+        public int ManagerStaffId { get { return (int)this.entity.dto["ManagerStaffId"]; } set { this.entity.dto["ManagerStaffId"] = value; } }
+        public int AddressId { get { return (int)this.entity.dto["AddressId"]; } set { this.entity.dto["AddressId"] = value; } }
         public DateTime LastUpdate { get { return (DateTime)this.entity.dto["LastUpdate"]; } set { this.entity.dto["LastUpdate"] = value; } }
         
         [JsonIgnore]

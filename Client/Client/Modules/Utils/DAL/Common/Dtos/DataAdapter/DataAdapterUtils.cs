@@ -30,6 +30,27 @@ namespace Client.Modules.Utils.DAL.Common
             return result;
         }
 
+        public static string CreateParamsQueryString(Dictionary<string, object> paramList)
+        {
+            var result = new List<string>();
+            foreach (var it in paramList)
+            {
+                if (it.Value.GetType() == typeof(bool))
+                {
+                    result.Add(string.Format("{0}={1}", it.Key, it.Value.ToString()));
+                }
+                else if (it.Value.GetType() == typeof(DateTime))
+                {
+                    result.Add(string.Format("{0}={1}", it.Key, it.Value.ToString()));
+                }
+                else
+                {
+                    result.Add(string.Format("{0}={1}", it.Key, it.Value.ToString()));
+                }
+            }
+            return string.Join("&", result).Replace("=null", "=");
+        }
+
     }
 
 }

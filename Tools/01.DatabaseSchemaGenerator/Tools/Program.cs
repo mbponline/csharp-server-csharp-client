@@ -1,19 +1,34 @@
-﻿using Tools.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
-using System.Diagnostics;
 using System.IO;
+using Tools.Modules;
 
 namespace Tools
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var metadata = MetadataGenerator.Generate();
+            var metadataSrv = Generator.Generate();
 
-            var path = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            path = path.Substring(8);
+            var pathToGenerated = ProgramUtils.GetPathToGenerated();
+
+            metadataSrv.WritePrettyJson(pathToGenerated, "metadata_srv.json");
+
+            Console.WriteLine();
+            Console.WriteLine("Done! Press any key to continue ...");
+            Console.ReadLine();
+        }
+    }
+
+    public static class ProgramUtils
+    {
+
+        public static string GetPathToGenerated()
+        {
+            //var path = System.Reflection.Assembly.GetExecutingAssembly().CodeBase; //.Location
+            var path = AppContext.BaseDirectory;
+            //path = path.Substring(8);
             // Info credit: https://social.msdn.microsoft.com/Forums/vstudio/en-US/decc53b0-2f53-4aae-b86b-6e786c5f8d90/navigate-up-4-levels-in-directoryfolder-path-to-create-string-reference-to-a-specific-folder?forum=csharpgeneral
             for (int i = 0; i < 5; i++)
             {
@@ -26,21 +41,16 @@ namespace Tools
                 Directory.CreateDirectory(path);
             }
 
-            path = Path.Combine(path, "metadata_mysql.json");
-
-            var json = JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include, DefaultValueHandling = DefaultValueHandling.Include });
-
-            Console.WriteLine(json);
-
-            File.WriteAllText(path, json);
-
-            Console.WriteLine();
-            Console.WriteLine("Press any key to continue ...");
-
-            Console.ReadLine();
-
-            Process.Start("notepad.exe", path);
+            return path;
         }
+
+        public static void WritePrettyJson(this object obj, string locationPath, string fileName)
+        {
+            var path = Path.Combine(locationPath, fileName);
+            var json = JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include, DefaultValueHandling = DefaultValueHandling.Include });
+            File.WriteAllText(path, json);
+        }
+
     }
 
 }

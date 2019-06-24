@@ -1,3 +1,14 @@
-﻿# Metadata generator server
+﻿# Data provider generator server
 
+### Restore dependencies
+
+```bash
+dotnet restore
+```
+
+### Run the application
+
+```bash
+dotnet run --project Tools
+```
 
